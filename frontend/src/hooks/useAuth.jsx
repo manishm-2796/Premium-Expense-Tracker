@@ -54,6 +54,22 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const updateProfile = async (data) => {
+    try {
+      setError(null);
+      const response = await authService.updateProfile(data);
+      const updatedUser = response.data;
+      
+      setUser(updatedUser);
+      setUserState(updatedUser);
+      return updatedUser;
+    } catch (err) {
+      const message = err.response?.data?.detail || 'Update failed';
+      setError(message);
+      throw new Error(message);
+    }
+  };
+
   const logout = () => {
     removeToken();
     removeUser();
@@ -61,7 +77,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, error, signup, login, logout, isAuthenticated: !!user }}>
+    <AuthContext.Provider value={{ user, loading, error, signup, login, logout, updateProfile, isAuthenticated: !!user }}>
       {children}
     </AuthContext.Provider>
   );

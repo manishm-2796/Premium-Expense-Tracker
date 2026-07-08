@@ -1,12 +1,15 @@
 import { useState, useEffect } from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import { transactionService, authService } from '../services/api';
+import { useAuth } from '../hooks/useAuth';
+import { formatCurrency } from '../utils/format';
 import { motion } from 'framer-motion';
 import { TrendingUp, CreditCard, AlertTriangle, Edit2, Check, Target } from 'lucide-react';
 
 const COLORS = ['#4f46e5', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4', '#ec4899'];
 
 export default function DashboardCharts({ refreshKey }) {
+  const { user } = useAuth();
   const [summary, setSummary] = useState(null);
   const [loading, setLoading] = useState(true);
   const [month, setMonth] = useState(new Date().toISOString().slice(0, 7));
@@ -84,7 +87,7 @@ export default function DashboardCharts({ refreshKey }) {
         >
           <AlertTriangle size={24} />
           <div>
-            <strong>Budget Exceeded!</strong> You have spent ${summary.today_spent.toFixed(2)} today, which is over your daily limit of ${summary.daily_budget.toFixed(2)}.
+            <strong>Budget Exceeded!</strong> You have spent {formatCurrency(summary.today_spent, user?.currency)} today, which is over your daily limit of {formatCurrency(summary.daily_budget, user?.currency)}.
           </div>
         </motion.div>
       )}
@@ -94,7 +97,7 @@ export default function DashboardCharts({ refreshKey }) {
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
             <div>
               <p style={{ fontSize: '0.875rem', opacity: 0.9, marginBottom: '0.25rem' }}>Total Spent (Month)</p>
-              <h3 style={{ fontSize: '1.75rem', fontWeight: '700', margin: 0 }}>${summary.total_spent.toFixed(2)}</h3>
+              <h3 style={{ fontSize: '1.75rem', fontWeight: '700', margin: 0 }}>{formatCurrency(summary.total_spent, user?.currency)}</h3>
             </div>
             <div style={{ background: 'rgba(255,255,255,0.2)', padding: '0.5rem', borderRadius: '50%' }}>
               <TrendingUp size={20} />
@@ -130,7 +133,7 @@ export default function DashboardCharts({ refreshKey }) {
               
               <div style={{ display: 'flex', alignItems: 'flex-end', gap: '0.5rem', marginTop: '0.25rem' }}>
                 <h3 style={{ fontSize: '1.5rem', fontWeight: '700', margin: 0, color: budgetExceeded ? '#ef4444' : 'var(--text-main)' }}>
-                  ${summary.today_spent?.toFixed(2) || '0.00'}
+                  {formatCurrency(summary.today_spent || 0, user?.currency)}
                 </h3>
                 
                 {isEditingBudget ? (
@@ -148,7 +151,7 @@ export default function DashboardCharts({ refreshKey }) {
                   </div>
                 ) : (
                   <span style={{ fontSize: '0.875rem', color: 'var(--text-muted)', marginBottom: '0.25rem' }}>
-                    / ${summary.daily_budget?.toFixed(2) || '0.00'} limit
+                    / {formatCurrency(summary.daily_budget || 0, user?.currency)} limit
                   </span>
                 )}
               </div>
@@ -178,7 +181,7 @@ export default function DashboardCharts({ refreshKey }) {
                 ))}
               </Pie>
               <Tooltip 
-                formatter={(value) => `$${value.toFixed(2)}`} 
+                formatter={(value) => formatCurrency(value, user?.currency)} 
                 contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: 'var(--shadow-lg)' }}
               />
             </PieChart>

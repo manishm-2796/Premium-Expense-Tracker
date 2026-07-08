@@ -5,7 +5,7 @@ import { LogOut, Wallet, Moon, Sun } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 export default function Navbar() {
-  const { logout, user } = useAuth();
+  const { logout, user, updateProfile } = useAuth();
   const { isDark, toggleDark } = useTheme();
   const navigate = useNavigate();
 
@@ -52,6 +52,32 @@ export default function Navbar() {
           <span style={{ fontSize: '0.875rem', fontWeight: '500' }}>{user?.email}</span>
         </div>
         
+        <select
+          value={user?.currency || 'USD'}
+          onChange={(e) => updateProfile({ currency: e.target.value })}
+          style={{
+            background: 'var(--bg-main)',
+            color: 'var(--text-main)',
+            border: '1px solid var(--border-color)',
+            borderRadius: '4px',
+            padding: '0.25rem 0.5rem',
+            fontSize: '0.875rem',
+            cursor: 'pointer'
+          }}
+        >
+          <option value="USD">USD ($)</option>
+          <option value="EUR">EUR (€)</option>
+          <option value="GBP">GBP (£)</option>
+          <option value="INR">INR (₹)</option>
+          <option value="JPY">JPY (¥)</option>
+          <option value="CAD">CAD ($)</option>
+          <option value="AUD">AUD ($)</option>
+          <option value="CHF">CHF (Fr)</option>
+          <option value="CNY">CNY (¥)</option>
+          <option value="SGD">SGD ($)</option>
+          <option value="NZD">NZD ($)</option>
+        </select>
+
         <button 
           onClick={toggleDark}
           style={{

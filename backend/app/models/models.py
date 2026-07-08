@@ -10,6 +10,7 @@ class User(Base):
     email = Column(String, unique=True, index=True)
     password_hash = Column(String)
     daily_budget = Column(Float, default=0.0)
+    currency = Column(String, default="USD")
     created_at = Column(DateTime, default=datetime.utcnow)
     
     transactions = relationship("Transaction", back_populates="user", cascade="all, delete-orphan")

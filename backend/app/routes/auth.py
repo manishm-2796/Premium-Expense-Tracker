@@ -66,6 +66,9 @@ def get_me(current_user: User = Depends(get_current_user)):
 def update_me(user_update: UserUpdate, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     if user_update.daily_budget is not None:
         current_user.daily_budget = user_update.daily_budget
-        db.commit()
-        db.refresh(current_user)
+    if user_update.currency is not None:
+        current_user.currency = user_update.currency
+        
+    db.commit()
+    db.refresh(current_user)
     return current_user

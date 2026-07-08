@@ -1,9 +1,12 @@
 import { useState, useEffect, useRef } from 'react';
 import { transactionService } from '../services/api';
+import { useAuth } from '../hooks/useAuth';
+import { formatCurrency } from '../utils/format';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, Trash2, Download, Upload } from 'lucide-react';
 
 export default function TransactionList({ refreshKey }) {
+  const { user } = useAuth();
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -192,7 +195,7 @@ export default function TransactionList({ refreshKey }) {
                       </span>
                     </td>
                     <td style={{ padding: '1rem', fontWeight: '600' }}>
-                      ${transaction.amount.toFixed(2)}
+                      {formatCurrency(transaction.amount, user?.currency)}
                     </td>
                     <td style={{ padding: '1rem', textAlign: 'right' }}>
                       <button

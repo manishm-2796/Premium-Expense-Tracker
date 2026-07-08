@@ -15,6 +15,7 @@ class UserResponse(BaseModel):
     id: int
     email: str
     daily_budget: float
+    currency: str
     created_at: datetime
     
     class Config:
@@ -22,6 +23,7 @@ class UserResponse(BaseModel):
 
 class UserUpdate(BaseModel):
     daily_budget: Optional[float] = None
+    currency: Optional[str] = None
 
 # Category Schemas
 class CategoryCreate(BaseModel):
