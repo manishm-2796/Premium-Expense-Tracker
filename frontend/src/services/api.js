@@ -37,7 +37,11 @@ export const transactionService = {
   create: (data) => api.post('/transactions', data),
   update: (id, data) => api.put(`/transactions/${id}`, data),
   delete: (id) => api.delete(`/transactions/${id}`),
-  getSummary: (month) => api.get('/transactions/dashboard/summary', { params: { month } })
+  getSummary: (month) => api.get('/transactions/dashboard/summary', { params: { month } }),
+  exportCSV: () => api.get('/transactions/export-csv', { responseType: 'blob' }),
+  uploadCSV: (formData) => api.post('/transactions/upload-csv', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' }
+  })
 };
 
 export default api;

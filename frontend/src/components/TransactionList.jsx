@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { transactionService } from '../services/api';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, Trash2 } from 'lucide-react';
+import { Search, Trash2, Download, Upload } from 'lucide-react';
 
 export default function TransactionList({ refreshKey }) {
   const [transactions, setTransactions] = useState([]);
@@ -43,6 +43,43 @@ export default function TransactionList({ refreshKey }) {
     }
   };
 
+  const handleExport = async () => {
+    try {
+      const response = await transactionService.exportCSV();
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', 'transactions.csv');
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    } catch (error) {
+      console.error('Failed to export CSV:', error);
+    }
+  };
+
+  const fileInputRef = useRef(null);
+  const handleFileUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    
+    const formData = new FormData();
+    formData.append('file', file);
+    
+    try {
+      setLoading(true);
+      await transactionService.uploadCSV(formData);
+      alert('CSV uploaded successfully!');
+      fetchTransactions();
+    } catch (error) {
+      console.error('Failed to upload CSV:', error);
+      alert('Failed to upload CSV. Please ensure it has Date, Description, and Amount columns.');
+    } finally {
+      setLoading(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
+
   return (
     <motion.div 
       initial={{ opacity: 0, y: 20 }}
@@ -78,6 +115,32 @@ export default function TransactionList({ refreshKey }) {
               <option key={cat} value={cat}>{cat}</option>
             ))}
           </select>
+          
+          <button 
+            onClick={handleExport}
+            className="btn btn-primary"
+            style={{ display: 'flex', gap: '0.5rem', background: 'var(--secondary-color)' }}
+          >
+            <Download size={16} />
+            Export CSV
+          </button>
+          
+          <input 
+            type="file" 
+            accept=".csv" 
+            ref={fileInputRef} 
+            onChange={handleFileUpload} 
+            style={{ display: 'none' }} 
+          />
+          <button 
+            onClick={() => fileInputRef.current?.click()}
+            className="btn btn-primary"
+            style={{ display: 'flex', gap: '0.5rem', background: '#3b82f6' }}
+            disabled={loading}
+          >
+            <Upload size={16} />
+            Import CSV
+          </button>
         </div>
       </div>
 

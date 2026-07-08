@@ -1,9 +1,10 @@
-﻿# Backend
+# Backend
 backend/__pycache__/
 backend/.venv/
 backend/*.pyc
 backend/.env
 backend/venv/
+backend/*.db
 
 # Frontend
 frontend/node_modules/

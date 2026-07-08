@@ -1,10 +1,12 @@
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
-import { LogOut, Wallet } from 'lucide-react';
+import { useTheme } from '../contexts/ThemeContext';
+import { LogOut, Wallet, Moon, Sun } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 export default function Navbar() {
   const { logout, user } = useAuth();
+  const { isDark, toggleDark } = useTheme();
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -49,6 +51,26 @@ export default function Navbar() {
           </div>
           <span style={{ fontSize: '0.875rem', fontWeight: '500' }}>{user?.email}</span>
         </div>
+        
+        <button 
+          onClick={toggleDark}
+          style={{
+            background: 'transparent',
+            border: 'none',
+            color: 'var(--text-muted)',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            transition: 'color 0.2s',
+            padding: '0.25rem'
+          }}
+          onMouseOver={(e) => e.currentTarget.style.color = 'var(--primary-color)'}
+          onMouseOut={(e) => e.currentTarget.style.color = 'var(--text-muted)'}
+        >
+          {isDark ? <Sun size={20} /> : <Moon size={20} />}
+        </button>
+
         <button 
           onClick={handleLogout} 
           style={{

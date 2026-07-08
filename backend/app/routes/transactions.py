@@ -1,4 +1,8 @@
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, UploadFile, File
+from fastapi.responses import StreamingResponse
+import csv
+from io import StringIO, BytesIO
+import pandas as pd
 from sqlalchemy.orm import Session
 from sqlalchemy import and_
 from datetime import datetime
@@ -9,6 +13,93 @@ from app.utils.security import get_current_user
 from typing import List
 
 router = APIRouter(prefix="/transactions", tags=["transactions"])
+
+def auto_categorize(description: str) -> str:
+    keywords = {
+        "Coffee": ["STARBUCKS", "COFFEE", "CAFE", "NESCAFE", "DUNKIN"],
+        "Groceries": ["WALMART", "WHOLE FOODS", "KROGER", "COSTCO", "TRADER JOE", "SAFEWAY"],
+        "Gas": ["SHELL", "CHEVRON", "EXXON", "BP", "ARCO"],
+        "Food": ["RESTAURANT", "PIZZA", "BURGER", "MCDONALDS", "UBER EATS", "DOORDASH", "CHIPOTLE"],
+        "Shopping": ["AMAZON", "TARGET", "BESTBUY"],
+        "Utilities": ["ELECTRIC", "WATER", "GAS BILL", "INTERNET", "COMCAST", "AT&T"],
+    }
+    desc_upper = str(description).upper()
+    for category, keywords_list in keywords.items():
+        if any(keyword in desc_upper for keyword in keywords_list):
+            return category
+    return "Other"
+
+@router.post("/upload-csv")
+async def upload_csv(
+    file: UploadFile = File(...),
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    contents = await file.read()
+    try:
+        df = pd.read_csv(BytesIO(contents))
+    except Exception as e:
+        raise HTTPException(status_code=400, detail="Invalid CSV format")
+    
+    date_col = next((c for c in df.columns if 'date' in c.lower()), None)
+    amount_col = next((c for c in df.columns if 'amount' in c.lower() or 'cost' in c.lower() or 'price' in c.lower()), None)
+    desc_col = next((c for c in df.columns if 'desc' in c.lower() or 'name' in c.lower() or 'payee' in c.lower()), None)
+    
+    if not all([date_col, amount_col, desc_col]):
+        raise HTTPException(status_code=400, detail="CSV must contain Date, Amount, and Description columns")
+        
+    created_count = 0
+    for idx, row in df.iterrows():
+        try:
+            amount = float(str(row[amount_col]).replace('$', '').replace(',', '').strip())
+            date_val = pd.to_datetime(row[date_col]).to_pydatetime()
+            desc = str(row[desc_col])
+            
+            cat_name = auto_categorize(desc)
+            category = db.query(Category).filter(Category.user_id == current_user.id, Category.name == cat_name).first()
+            if not category:
+                category = Category(user_id=current_user.id, name=cat_name, color="#8b5cf6")
+                db.add(category)
+                db.flush()
+                
+            new_transaction = Transaction(
+                user_id=current_user.id,
+                category_id=category.id,
+                amount=amount,
+                description=desc,
+                date=date_val,
+                source="csv"
+            )
+            db.add(new_transaction)
+            created_count += 1
+        except Exception as e:
+            print(f"Skipping row {idx}: {e}")
+            continue
+            
+    db.commit()
+    return {"message": f"Successfully imported {created_count} transactions"}
+
+@router.get("/export-csv")
+def export_transactions(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    transactions = db.query(Transaction).filter(Transaction.user_id == current_user.id).order_by(Transaction.date.desc()).all()
+    
+    output = StringIO()
+    writer = csv.writer(output)
+    writer.writerow(["Date", "Description", "Category", "Amount", "Source"])
+    
+    for t in transactions:
+        writer.writerow([t.date.strftime("%Y-%m-%d"), t.description, t.category.name, t.amount, t.source])
+    
+    output.seek(0)
+    
+    return StreamingResponse(
+        iter([output.getvalue()]), 
+        media_type="text/csv",
+        headers={"Content-Disposition": "attachment; filename=transactions.csv"}
+    )
 
 @router.get("/", response_model=List[TransactionResponse])
 def get_transactions(
