@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
 import { transactionService, categoryService } from '../services/api';
+import { useAuth } from '../hooks/useAuth';
 import { motion } from 'framer-motion';
 import { PlusCircle, Tag } from 'lucide-react';
 
 export default function TransactionForm({ onTransactionAdded }) {
+  const { user } = useAuth();
   const [formData, setFormData] = useState({
     category_id: '',
     amount: '',
@@ -139,7 +141,9 @@ export default function TransactionForm({ onTransactionAdded }) {
         </div>
 
         <div className="form-group">
-          <label className="input-label">Amount ($)</label>
+          <label className="input-label">
+            Amount ({new Intl.NumberFormat('en-US', { style: 'currency', currency: user?.currency || 'USD' }).formatToParts(1).find(x => x.type === 'currency')?.value || '$'})
+          </label>
           <input
             className="input-field"
             type="number"
