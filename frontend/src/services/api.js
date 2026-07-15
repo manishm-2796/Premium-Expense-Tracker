@@ -26,15 +26,15 @@ export const authService = {
 };
 
 export const categoryService = {
-  getAll: () => api.get('/categories'),
-  create: (data) => api.post('/categories', data),
+  getAll: () => api.get('/categories/'),
+  create: (data) => api.post('/categories/', data),
   update: (id, data) => api.put(`/categories/${id}`, data),
   delete: (id) => api.delete(`/categories/${id}`)
 };
 
 export const transactionService = {
-  getAll: (params) => api.get('/transactions', { params }),
-  create: (data) => api.post('/transactions', data),
+  getAll: (params) => api.get('/transactions/', { params }),
+  create: (data) => api.post('/transactions/', data),
   update: (id, data) => api.put(`/transactions/${id}`, data),
   delete: (id) => api.delete(`/transactions/${id}`),
   getSummary: (month) => api.get('/transactions/dashboard/summary', { params: { month } }),

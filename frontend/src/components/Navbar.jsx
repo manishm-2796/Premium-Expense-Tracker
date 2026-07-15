@@ -56,7 +56,7 @@ export default function Navbar() {
           value={user?.currency || 'USD'}
           onChange={(e) => updateProfile({ currency: e.target.value })}
           style={{
-            background: 'var(--bg-main)',
+            background: 'var(--bg-color)',
             color: 'var(--text-main)',
             border: '1px solid var(--border-color)',
             borderRadius: '4px',
