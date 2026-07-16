@@ -1,6 +1,9 @@
 from fastapi import APIRouter, Depends, HTTPException, Query, UploadFile, File
 from fastapi.responses import StreamingResponse
 import csv
+import requests
+import re
+import base64
 from io import StringIO, BytesIO
 import pandas as pd
 from sqlalchemy.orm import Session
@@ -237,4 +240,67 @@ def get_dashboard_summary(
         "daily_budget": current_user.daily_budget,
         "by_category": by_category,
         "month": month or datetime.now().strftime("%Y-%m")
+    }
+
+@router.post("/scan")
+async def scan_receipt(
+    file: UploadFile = File(...),
+    current_user: User = Depends(get_current_user)
+):
+    contents = await file.read()
+    
+    # 1. Encode image to Base64
+    b64_image = base64.b64encode(contents).decode('utf-8')
+    data_uri = f"data:{file.content_type};base64,{b64_image}"
+    
+    # 2. Call OCR.space API
+    # Free API key 'helloworld' has rate limits but works for testing/MVP
+    response = requests.post(
+        "https://api.ocr.space/parse/image",
+        data={
+            "apikey": "helloworld",
+            "base64Image": data_uri,
+            "language": "eng",
+            "isOverlayRequired": False
+        }
+    )
+    
+    if response.status_code != 200:
+        raise HTTPException(status_code=500, detail="OCR Service Unavailable")
+        
+    result = response.json()
+    if result.get("IsErroredOnProcessing"):
+        raise HTTPException(status_code=400, detail="Failed to parse image text")
+        
+    parsed_results = result.get("ParsedResults", [])
+    if not parsed_results:
+        raise HTTPException(status_code=400, detail="No text found in image")
+        
+    text = parsed_results[0].get("ParsedText", "")
+    
+    # 3. Extract Amount
+    # Find all currency patterns like $12.99 or 12.99
+    amounts = re.findall(r'[$€£]?\s*(\d+\.\d{2})', text)
+    amounts = [float(a) for a in amounts]
+    total_amount = max(amounts) if amounts else 0.0
+    
+    # 4. Extract Date (simple pattern mm/dd/yyyy or yyyy-mm-dd)
+    date_str = None
+    date_match = re.search(r'(\d{1,2}[/-]\d{1,2}[/-]\d{2,4})', text)
+    if date_match:
+        try:
+            # Attempt basic parse
+            dt = pd.to_datetime(date_match.group(1), errors='coerce')
+            if not pd.isna(dt):
+                date_str = dt.strftime("%Y-%m-%d")
+        except:
+            pass
+            
+    if not date_str:
+        date_str = datetime.now().strftime("%Y-%m-%d")
+        
+    return {
+        "amount": total_amount,
+        "date": date_str,
+        "raw_text": text[:200] # Return snippet for debugging if needed
     }
