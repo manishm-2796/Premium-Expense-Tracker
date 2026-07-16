@@ -11,7 +11,7 @@ app = FastAPI(title="Expense Tracker API", version="1.0.0")
 # CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://localhost:5173"],  # React dev server
+    allow_origins=["http://localhost:3000", "http://localhost:5173", "http://localhost:8081"],  # React dev servers and Expo Web
     allow_origin_regex=r"https://.*\.vercel\.app", # Allow all vercel deployments
     allow_credentials=True,
     allow_methods=["*"],
