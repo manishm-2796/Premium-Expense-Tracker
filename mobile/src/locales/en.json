@@ -1,0 +1,22 @@
+{
+  "settings": {
+    "title": "Settings",
+    "language": "Language",
+    "currency": "Currency",
+    "logout": "Logout",
+    "preferences": "Preferences",
+    "account": "Account",
+    "theme": "Theme (Coming Soon)"
+  },
+  "dashboard": {
+    "goodMorning": "Good Morning,",
+    "totalBalance": "Total Balance",
+    "recentActivity": "Recent Activity",
+    "seeAll": "See All",
+    "noTransactions": "No recent transactions found.",
+    "topUp": "Top Up",
+    "transfer": "Transfer",
+    "analytics": "Analytics",
+    "activity": "Activity"
+  }
+}

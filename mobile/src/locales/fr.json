@@ -1,0 +1,22 @@
+{
+  "settings": {
+    "title": "Paramètres",
+    "language": "Langue",
+    "currency": "Devise",
+    "logout": "Déconnexion",
+    "preferences": "Préférences",
+    "account": "Compte",
+    "theme": "Thème (Bientôt)"
+  },
+  "dashboard": {
+    "goodMorning": "Bonjour,",
+    "totalBalance": "Solde Total",
+    "recentActivity": "Activité Récente",
+    "seeAll": "Voir Tout",
+    "noTransactions": "Aucune transaction récente trouvée.",
+    "topUp": "Recharger",
+    "transfer": "Transférer",
+    "analytics": "Analytique",
+    "activity": "Activité"
+  }
+}

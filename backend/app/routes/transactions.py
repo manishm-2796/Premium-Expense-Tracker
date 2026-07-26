@@ -32,6 +32,41 @@ def auto_categorize(description: str) -> str:
             return category
     return "Other"
 
+def check_and_send_budget_alert(user: User, db: Session):
+    if not user.push_token or user.daily_budget <= 0:
+        return
+        
+    monthly_limit = user.daily_budget * 30
+    
+    now = datetime.now()
+    year, mon = now.year, now.month
+    
+    next_month = mon + 1 if mon < 12 else 1
+    next_year = year if mon < 12 else year + 1
+    
+    transactions = db.query(Transaction).filter(
+        Transaction.user_id == user.id,
+        Transaction.date >= f"{year}-{mon:02d}-01",
+        Transaction.date < f"{next_year}-{next_month:02d}-01"
+    ).all()
+    
+    total_spent = sum(t.amount for t in transactions)
+    
+    if total_spent > monthly_limit:
+        # Send Push Notification via Expo
+        message = {
+            "to": user.push_token,
+            "sound": "default",
+            "title": "Budget Alert! 🚨",
+            "body": f"You have exceeded your monthly limit of {user.currency} {monthly_limit:.0f}. Total spent: {total_spent:.2f}",
+            "data": {"type": "budget_alert"},
+        }
+        try:
+            # Fire and forget request to Expo Push API
+            requests.post('https://exp.host/--/api/v2/push/send', json=message, timeout=3)
+        except Exception as e:
+            print(f"Failed to send push notification: {e}")
+
 @router.post("/upload-csv")
 async def upload_csv(
     file: UploadFile = File(...),
@@ -104,6 +139,41 @@ def export_transactions(
         headers={"Content-Disposition": "attachment; filename=transactions.csv"}
     )
 
+@router.get("/analytics/trends")
+def get_trends(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    from sqlalchemy import func
+    import calendar
+    
+    trends = []
+    now = datetime.now()
+    
+    for i in range(5, -1, -1):
+        target_month = now.month - i
+        target_year = now.year
+        if target_month <= 0:
+            target_month += 12
+            target_year -= 1
+            
+        label = calendar.month_abbr[target_month]
+        
+        next_month = target_month + 1 if target_month < 12 else 1
+        next_year = target_year if target_month < 12 else target_year + 1
+        
+        total = db.query(func.sum(Transaction.amount)).filter(
+            Transaction.user_id == current_user.id,
+            Transaction.date >= f"{target_year}-{target_month:02d}-01",
+            Transaction.date < f"{next_year}-{next_month:02d}-01"
+        ).scalar()
+        
+        trends.append({
+            "label": label,
+            "amount": total or 0.0
+        })
+    return trends
+
 @router.get("/", response_model=List[TransactionResponse])
 def get_transactions(
     current_user: User = Depends(get_current_user),
@@ -145,10 +215,39 @@ def create_transaction(
     if not category:
         raise HTTPException(status_code=404, detail="Category not found")
     
+    # Handle Multi-Currency Conversion
+    final_amount = transaction_data.amount
+    exchange_rate = 1.0
+    original_currency = transaction_data.original_currency
+    original_amount = transaction_data.original_amount
+    
+    if original_currency and original_currency != current_user.currency:
+        try:
+            # Fetch live exchange rate
+            # Using exchangerate-api.com (free open API)
+            response = requests.get(f"https://api.exchangerate-api.com/v4/latest/{original_currency}")
+            if response.status_code == 200:
+                rates = response.json().get("rates", {})
+                target_rate = rates.get(current_user.currency)
+                if target_rate:
+                    exchange_rate = target_rate
+                    final_amount = original_amount * target_rate
+        except Exception as e:
+            print(f"Currency conversion failed: {e}")
+            # If it fails, we just fallback to the original amount (or maybe raise an error, but fallback is safer for MVP)
+            final_amount = original_amount
+    else:
+        # If no conversion needed, just make sure they match
+        original_amount = final_amount
+        original_currency = current_user.currency
+
     new_transaction = Transaction(
         user_id=current_user.id,
         category_id=transaction_data.category_id,
-        amount=transaction_data.amount,
+        amount=final_amount,
+        original_amount=original_amount,
+        original_currency=original_currency,
+        exchange_rate=exchange_rate,
         description=transaction_data.description,
         date=transaction_data.date,
         source="manual"
@@ -156,6 +255,10 @@ def create_transaction(
     db.add(new_transaction)
     db.commit()
     db.refresh(new_transaction)
+    
+    # Check budget and send alert if needed
+    check_and_send_budget_alert(current_user, db)
+    
     return new_transaction
 
 @router.put("/{transaction_id}", response_model=TransactionResponse)
@@ -238,6 +341,7 @@ def get_dashboard_summary(
         "total_spent": total_spent,
         "today_spent": today_spent,
         "daily_budget": current_user.daily_budget,
+        "monthly_budget": current_user.monthly_budget,
         "by_category": by_category,
         "month": month or datetime.now().strftime("%Y-%m")
     }

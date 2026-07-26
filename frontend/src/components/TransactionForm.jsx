@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react';
 import { transactionService, categoryService } from '../services/api';
 import { useAuth } from '../hooks/useAuth';
 import { motion } from 'framer-motion';
-import { PlusCircle, Tag } from 'lucide-react';
+import { PlusCircle, Tag, Camera } from 'lucide-react';
+import ReceiptScannerModal from './ReceiptScannerModal';
 
 export default function TransactionForm({ onTransactionAdded }) {
   const { user } = useAuth();
@@ -17,6 +18,7 @@ export default function TransactionForm({ onTransactionAdded }) {
   const [error, setError] = useState('');
   const [showNewCategory, setShowNewCategory] = useState(false);
   const [newCategory, setNewCategory] = useState('');
+  const [showScanner, setShowScanner] = useState(false);
 
   useEffect(() => {
     fetchCategories();
@@ -42,6 +44,15 @@ export default function TransactionForm({ onTransactionAdded }) {
     } catch (error) {
       setError('Failed to create category');
     }
+  };
+
+  const handleScanSuccess = ({ amount, date, description }) => {
+    setFormData((prev) => ({
+      ...prev,
+      amount: amount || prev.amount,
+      date: date || prev.date,
+      description: description || prev.description
+    }));
   };
 
   const handleSubmit = async (e) => {
@@ -85,12 +96,30 @@ export default function TransactionForm({ onTransactionAdded }) {
       className="glass-panel"
       style={{ padding: '2rem' }}
     >
-      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.5rem' }}>
-        <div style={{ background: '#e0e7ff', color: 'var(--primary-color)', padding: '0.5rem', borderRadius: '8px' }}>
-          <PlusCircle size={20} />
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.5rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+          <div style={{ background: '#e0e7ff', color: 'var(--primary-color)', padding: '0.5rem', borderRadius: '8px' }}>
+            <PlusCircle size={20} />
+          </div>
+          <h3 style={{ margin: 0, fontSize: '1.25rem', fontWeight: '600' }}>Quick Add</h3>
         </div>
-        <h3 style={{ margin: 0, fontSize: '1.25rem', fontWeight: '600' }}>Quick Add</h3>
+
+        <button 
+          type="button" 
+          className="btn btn-outline" 
+          style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.85rem', padding: '0.4rem 0.75rem' }}
+          onClick={() => setShowScanner(true)}
+        >
+          <Camera size={16} />
+          Scan Receipt
+        </button>
       </div>
+
+      <ReceiptScannerModal 
+        isOpen={showScanner} 
+        onClose={() => setShowScanner(false)} 
+        onScanSuccess={handleScanSuccess} 
+      />
       
       {error && <div className="error-msg">{error}</div>}
       
@@ -142,7 +171,7 @@ export default function TransactionForm({ onTransactionAdded }) {
 
         <div className="form-group">
           <label className="input-label">
-            Amount ({new Intl.NumberFormat('en-US', { style: 'currency', currency: user?.currency || 'USD' }).formatToParts(1).find(x => x.type === 'currency')?.value || '$'})
+            Amount ({user?.currency || 'USD'})
           </label>
           <input
             className="input-field"

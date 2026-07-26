@@ -1,0 +1,22 @@
+{
+  "settings": {
+    "title": "सेटिंग्स",
+    "language": "भाषा",
+    "currency": "मुद्रा",
+    "logout": "लॉग आउट",
+    "preferences": "प्राथमिकताएं",
+    "account": "खाता",
+    "theme": "थीम (जल्द आ रहा है)"
+  },
+  "dashboard": {
+    "goodMorning": "शुभ प्रभात,",
+    "totalBalance": "कुल शेष",
+    "recentActivity": "हाल की गतिविधि",
+    "seeAll": "सभी देखें",
+    "noTransactions": "कोई हालिया लेन-देन नहीं मिला।",
+    "topUp": "टॉप अप",
+    "transfer": "स्थानांतरण",
+    "analytics": "विश्लेषण",
+    "activity": "गतिविधि"
+  }
+}

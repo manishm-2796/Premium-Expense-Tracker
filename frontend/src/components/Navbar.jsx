@@ -1,18 +1,29 @@
-import { useNavigate } from 'react-router-dom';
+import React from 'react';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { useTheme } from '../contexts/ThemeContext';
-import { LogOut, Wallet, Moon, Sun } from 'lucide-react';
+import { LogOut, Wallet, Moon, Sun, LayoutDashboard, TrendingUp, Target, RefreshCw, Bot, Settings } from 'lucide-react';
 import { motion } from 'framer-motion';
 
-export default function Navbar() {
+export default function Navbar({ activePage }) {
   const { logout, user, updateProfile } = useAuth();
   const { isDark, toggleDark } = useTheme();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const handleLogout = () => {
     logout();
     navigate('/login');
   };
+
+  const navItems = [
+    { key: 'dashboard', path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+    { key: 'analytics', path: '/analytics', label: 'Analytics', icon: TrendingUp },
+    { key: 'budgets', path: '/budgets', label: 'Budgets', icon: Target },
+    { key: 'subscriptions', path: '/subscriptions', label: 'Subscriptions', icon: RefreshCw },
+    { key: 'chat', path: '/chat', label: 'AI Advisor', icon: Bot },
+    { key: 'settings', path: '/settings', label: 'Settings', icon: Settings },
+  ];
 
   return (
     <motion.nav 
@@ -22,7 +33,7 @@ export default function Navbar() {
         background: 'var(--glass-bg)',
         backdropFilter: 'blur(12px)',
         borderBottom: 'var(--glass-border)',
-        padding: '1rem 2rem',
+        padding: '0.75rem 2rem',
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'center',
@@ -32,26 +43,46 @@ export default function Navbar() {
         boxShadow: 'var(--shadow-sm)'
       }}
     >
-      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', color: 'var(--primary-color)' }}>
-        <Wallet size={28} />
-        <h1 style={{ margin: 0, fontSize: '1.25rem', fontWeight: '700', color: 'var(--text-main)' }}>
-          ExpenseTracker
-        </h1>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '2rem' }}>
+        <Link to="/dashboard" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', textDecoration: 'none', color: 'var(--primary-color)' }}>
+          <Wallet size={28} />
+          <h1 style={{ margin: 0, fontSize: '1.25rem', fontWeight: '700', color: 'var(--text-main)' }}>
+            ExpenseTracker
+          </h1>
+        </Link>
+
+        {/* Navigation Links */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          {navItems.map((item) => {
+            const Icon = item.icon;
+            const isActive = activePage === item.key || location.pathname === item.path;
+            return (
+              <Link
+                key={item.key}
+                to={item.path}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.5rem',
+                  padding: '0.5rem 0.85rem',
+                  borderRadius: '8px',
+                  textDecoration: 'none',
+                  fontSize: '0.875rem',
+                  fontWeight: isActive ? '600' : '500',
+                  color: isActive ? 'var(--primary-color)' : 'var(--text-muted)',
+                  backgroundColor: isActive ? 'rgba(99, 102, 241, 0.12)' : 'transparent',
+                  transition: 'all 0.2s'
+                }}
+              >
+                <Icon size={18} />
+                <span>{item.label}</span>
+              </Link>
+            );
+          })}
+        </div>
       </div>
       
-      <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          <div style={{ 
-            width: '32px', height: '32px', borderRadius: '50%', 
-            background: 'linear-gradient(135deg, var(--primary-color), var(--secondary-color))',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            color: 'white', fontWeight: '600', fontSize: '0.875rem'
-          }}>
-            {user?.email?.[0].toUpperCase()}
-          </div>
-          <span style={{ fontSize: '0.875rem', fontWeight: '500' }}>{user?.email}</span>
-        </div>
-        
+      <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
         <select
           value={user?.currency || 'USD'}
           onChange={(e) => updateProfile({ currency: e.target.value })}
@@ -59,9 +90,9 @@ export default function Navbar() {
             background: 'var(--bg-color)',
             color: 'var(--text-main)',
             border: '1px solid var(--border-color)',
-            borderRadius: '4px',
-            padding: '0.25rem 0.5rem',
-            fontSize: '0.875rem',
+            borderRadius: '6px',
+            padding: '0.35rem 0.65rem',
+            fontSize: '0.85rem',
             cursor: 'pointer'
           }}
         >
@@ -74,8 +105,6 @@ export default function Navbar() {
           <option value="AUD">AUD ($)</option>
           <option value="CHF">CHF (Fr)</option>
           <option value="CNY">CNY (¥)</option>
-          <option value="SGD">SGD ($)</option>
-          <option value="NZD">NZD ($)</option>
         </select>
 
         <button 
@@ -88,11 +117,9 @@ export default function Navbar() {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            transition: 'color 0.2s',
             padding: '0.25rem'
           }}
-          onMouseOver={(e) => e.currentTarget.style.color = 'var(--primary-color)'}
-          onMouseOut={(e) => e.currentTarget.style.color = 'var(--text-muted)'}
+          title="Toggle Theme"
         >
           {isDark ? <Sun size={20} /> : <Moon size={20} />}
         </button>
@@ -106,13 +133,10 @@ export default function Navbar() {
             cursor: 'pointer',
             display: 'flex',
             alignItems: 'center',
-            gap: '0.5rem',
+            gap: '0.4rem',
             fontSize: '0.875rem',
-            fontWeight: '500',
-            transition: 'color 0.2s'
+            fontWeight: '500'
           }}
-          onMouseOver={(e) => e.currentTarget.style.color = 'var(--primary-color)'}
-          onMouseOut={(e) => e.currentTarget.style.color = 'var(--text-muted)'}
         >
           <LogOut size={18} />
           Logout

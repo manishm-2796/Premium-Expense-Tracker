@@ -12,6 +12,16 @@ frontend/.env.local
 frontend/build/
 frontend/dist/
 
+# Mobile
+mobile/node_modules/
+mobile/.expo/
+mobile/dist/
+
+# General
+**/__pycache__/
+*.pyc
+*.db
+
 # IDE
 .vscode/
 .idea/

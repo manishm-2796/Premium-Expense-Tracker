@@ -9,12 +9,21 @@ class User(Base):
     id = Column(Integer, primary_key=True, index=True)
     email = Column(String, unique=True, index=True)
     password_hash = Column(String)
-    daily_budget = Column(Float, default=0.0)
+    full_name = Column(String, nullable=True)
+    dob = Column(String, nullable=True)
+    phone = Column(String, nullable=True)
+    gemini_api_key = Column(String, nullable=True)
+    card_last_four = Column(String, nullable=True)
+    card_expiry = Column(String, nullable=True)
+    daily_budget = Column(Float, default=0.0) # Deprecated
+    monthly_budget = Column(Float, nullable=True)
     currency = Column(String, default="USD")
+    push_token = Column(String, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     
     transactions = relationship("Transaction", back_populates="user", cascade="all, delete-orphan")
     categories = relationship("Category", back_populates="user", cascade="all, delete-orphan")
+    recurring_expenses = relationship("RecurringExpense", back_populates="user", cascade="all, delete-orphan")
 
 
 class Category(Base):
@@ -38,6 +47,9 @@ class Transaction(Base):
     user_id = Column(Integer, ForeignKey("users.id"))
     category_id = Column(Integer, ForeignKey("categories.id"))
     amount = Column(Float)
+    original_amount = Column(Float, nullable=True)
+    original_currency = Column(String, nullable=True)
+    exchange_rate = Column(Float, nullable=True)
     description = Column(String)
     date = Column(DateTime, default=datetime.utcnow)
     source = Column(String, default="manual")  # "manual" or "csv"
@@ -45,3 +57,17 @@ class Transaction(Base):
     
     user = relationship("User", back_populates="transactions")
     category = relationship("Category", back_populates="transactions")
+
+
+class RecurringExpense(Base):
+    __tablename__ = "recurring"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"))
+    merchant = Column(String)
+    amount = Column(Float)
+    frequency = Column(String, default="Monthly") # Monthly, Weekly, Yearly
+    next_date = Column(DateTime)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    
+    user = relationship("User", back_populates="recurring_expenses")

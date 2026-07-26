@@ -38,10 +38,26 @@ export const transactionService = {
   update: (id, data) => api.put(`/transactions/${id}`, data),
   delete: (id) => api.delete(`/transactions/${id}`),
   getSummary: (month) => api.get('/transactions/dashboard/summary', { params: { month } }),
+  getTrends: () => api.get('/transactions/analytics/trends'),
   exportCSV: () => api.get('/transactions/export-csv', { responseType: 'blob' }),
   uploadCSV: (formData) => api.post('/transactions/upload-csv', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' }
+  }),
+  scanReceipt: (formData) => api.post('/transactions/scan', formData, {
     headers: { 'Content-Type': 'multipart/form-data' }
   })
 };
 
+export const recurringService = {
+  getAll: () => api.get('/recurring/'),
+  create: (data) => api.post('/recurring/', data),
+  update: (id, data) => api.put(`/recurring/${id}`, data),
+  delete: (id) => api.delete(`/recurring/${id}`)
+};
+
+export const chatService = {
+  sendMessage: (data) => api.post('/chat/', data)
+};
+
 export default api;
+

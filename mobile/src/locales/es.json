@@ -1,0 +1,22 @@
+{
+  "settings": {
+    "title": "Ajustes",
+    "language": "Idioma",
+    "currency": "Moneda",
+    "logout": "Cerrar Sesión",
+    "preferences": "Preferencias",
+    "account": "Cuenta",
+    "theme": "Tema (Próximamente)"
+  },
+  "dashboard": {
+    "goodMorning": "Buenos Días,",
+    "totalBalance": "Saldo Total",
+    "recentActivity": "Actividad Reciente",
+    "seeAll": "Ver Todo",
+    "noTransactions": "No se encontraron transacciones recientes.",
+    "topUp": "Recargar",
+    "transfer": "Transferir",
+    "analytics": "Análisis",
+    "activity": "Actividad"
+  }
+}

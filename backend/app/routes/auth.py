@@ -64,10 +64,26 @@ def get_me(current_user: User = Depends(get_current_user)):
 
 @router.put("/me", response_model=UserResponse)
 def update_me(user_update: UserUpdate, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    if user_update.full_name is not None:
+        current_user.full_name = user_update.full_name
+    if user_update.dob is not None:
+        current_user.dob = user_update.dob
+    if user_update.phone is not None:
+        current_user.phone = user_update.phone
+    if user_update.gemini_api_key is not None:
+        current_user.gemini_api_key = user_update.gemini_api_key
+    if user_update.card_last_four is not None:
+        current_user.card_last_four = user_update.card_last_four
+    if user_update.card_expiry is not None:
+        current_user.card_expiry = user_update.card_expiry
     if user_update.daily_budget is not None:
         current_user.daily_budget = user_update.daily_budget
+    if user_update.monthly_budget is not None:
+        current_user.monthly_budget = user_update.monthly_budget
     if user_update.currency is not None:
         current_user.currency = user_update.currency
+    if user_update.push_token is not None:
+        current_user.push_token = user_update.push_token
         
     db.commit()
     db.refresh(current_user)
