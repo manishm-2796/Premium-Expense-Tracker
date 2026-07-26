@@ -5,7 +5,12 @@ from app.models.models import User, Transaction, Category
 from app.utils.security import get_current_user
 from pydantic import BaseModel
 import os
-import google.generativeai as genai
+try:
+    import google.generativeai as genai
+    GEMINI_AVAILABLE = True
+except ImportError:
+    genai = None
+    GEMINI_AVAILABLE = False
 
 router = APIRouter(prefix="/chat", tags=["chat"])
 
@@ -15,10 +20,12 @@ class ChatRequest(BaseModel):
 class ChatResponse(BaseModel):
     reply: str
 
-# Try to configure Gemini
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
-if GEMINI_API_KEY:
-    genai.configure(api_key=GEMINI_API_KEY)
+if GEMINI_AVAILABLE and GEMINI_API_KEY:
+    try:
+        genai.configure(api_key=GEMINI_API_KEY)
+    except Exception:
+        pass
 
 @router.post("/", response_model=ChatResponse)
 async def chat_with_assistant(
