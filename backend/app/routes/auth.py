@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from datetime import timedelta
 from app.database import get_db
 from app.models.models import User
-from app.schemas.schemas import UserCreate, UserLogin, TokenResponse, UserResponse, UserUpdate
+from app.schemas.schemas import UserCreate, UserLogin, SocialLoginRequest, TokenResponse, UserResponse, UserUpdate
 from app.utils.security import (
     hash_password, verify_password, create_access_token, 
     ACCESS_TOKEN_EXPIRE_MINUTES, get_current_user
@@ -35,7 +35,7 @@ def signup(user_data: UserCreate, db: Session = Depends(get_db)):
     return {
         "access_token": access_token,
         "token_type": "bearer",
-        "user": UserResponse.from_orm(new_user)
+        "user": UserResponse.model_validate(new_user)
     }
 
 @router.post("/login", response_model=TokenResponse)
@@ -55,7 +55,33 @@ def login(user_data: UserLogin, db: Session = Depends(get_db)):
     return {
         "access_token": access_token,
         "token_type": "bearer",
-        "user": UserResponse.from_orm(user)
+        "user": UserResponse.model_validate(user)
+    }
+
+@router.post("/social-login", response_model=TokenResponse)
+def social_login(data: SocialLoginRequest, db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.email == data.email).first()
+    if not user:
+        random_pwd = hash_password(f"social_{data.provider}_{data.email}_secret")
+        user = User(
+            email=data.email,
+            password_hash=random_pwd,
+            full_name=data.full_name or data.email.split("@")[0].title()
+        )
+        db.add(user)
+        db.commit()
+        db.refresh(user)
+
+    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    access_token = create_access_token(
+        data={"sub": str(user.id)}, 
+        expires_delta=access_token_expires
+    )
+
+    return {
+        "access_token": access_token,
+        "token_type": "bearer",
+        "user": UserResponse.model_validate(user)
     }
 
 @router.get("/me", response_model=UserResponse)

@@ -70,6 +70,24 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const socialLogin = async (providerData) => {
+    try {
+      setError(null);
+      const response = await authService.socialLogin(providerData);
+      const { access_token, user: userData } = response.data;
+      
+      setToken(access_token);
+      setUser(userData);
+      setUserState(userData);
+      
+      return userData;
+    } catch (err) {
+      const message = err.response?.data?.detail || 'Social sign-in failed';
+      setError(message);
+      throw new Error(message);
+    }
+  };
+
   const logout = () => {
     removeToken();
     removeUser();
@@ -77,7 +95,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, error, signup, login, logout, updateProfile, isAuthenticated: !!user }}>
+    <AuthContext.Provider value={{ user, loading, error, signup, login, socialLogin, logout, updateProfile, isAuthenticated: !!user }}>
       {children}
     </AuthContext.Provider>
   );

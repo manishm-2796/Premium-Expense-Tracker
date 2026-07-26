@@ -21,6 +21,7 @@ api.interceptors.request.use((config) => {
 export const authService = {
   signup: (email, password) => api.post('/auth/signup', { email, password }),
   login: (email, password) => api.post('/auth/login', { email, password }),
+  socialLogin: (data) => api.post('/auth/social-login', data),
   getMe: () => api.get('/auth/me'),
   updateProfile: (data) => api.put('/auth/me', data)
 };

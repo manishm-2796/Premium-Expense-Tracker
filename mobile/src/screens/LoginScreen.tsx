@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator, Alert } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
 import { useAuth } from '../contexts/AuthContext';
 import { authService } from '../services/api';
 
@@ -23,6 +23,20 @@ export default function LoginScreen({ navigation }: any) {
       await login(response.data.access_token, response.data.user);
     } catch (error: any) {
       setErrorMsg(error.response?.data?.detail || 'An error occurred during login');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSocialLogin = async (provider: string) => {
+    setErrorMsg('');
+    setLoading(true);
+    try {
+      const mockEmail = `user.${provider}@example.com`;
+      const response = await authService.signup(mockEmail, 'social_pass_123'); // Or social auth endpoint
+      await login(response.data.access_token, response.data.user);
+    } catch (err: any) {
+      setErrorMsg(`Failed to connect with ${provider}`);
     } finally {
       setLoading(false);
     }
@@ -57,6 +71,30 @@ export default function LoginScreen({ navigation }: any) {
         {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>Login</Text>}
       </TouchableOpacity>
 
+      <View style={styles.dividerRow}>
+        <View style={styles.line} />
+        <Text style={styles.dividerText}>OR SIGN IN WITH</Text>
+        <View style={styles.line} />
+      </View>
+
+      <View style={styles.socialGrid}>
+        <TouchableOpacity style={[styles.socialBtn, { backgroundColor: '#ea4335' }]} onPress={() => handleSocialLogin('Google')}>
+          <Text style={styles.socialBtnText}>Google</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity style={[styles.socialBtn, { backgroundColor: '#1877f2' }]} onPress={() => handleSocialLogin('Facebook')}>
+          <Text style={styles.socialBtnText}>Facebook</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity style={[styles.socialBtn, { backgroundColor: '#e1306c' }]} onPress={() => handleSocialLogin('Instagram')}>
+          <Text style={styles.socialBtnText}>Instagram</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity style={[styles.socialBtn, { backgroundColor: '#000000' }]} onPress={() => handleSocialLogin('X')}>
+          <Text style={styles.socialBtnText}>X</Text>
+        </TouchableOpacity>
+      </View>
+
       <TouchableOpacity onPress={() => navigation.navigate('Signup')} style={styles.linkContainer}>
         <Text style={styles.linkText}>Don't have an account? Sign up</Text>
       </TouchableOpacity>
@@ -82,23 +120,23 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#6b7280',
     textAlign: 'center',
-    marginBottom: 32,
+    marginBottom: 24,
   },
   inputContainer: {
-    gap: 16,
-    marginBottom: 24,
+    gap: 12,
+    marginBottom: 20,
   },
   input: {
     backgroundColor: '#fff',
-    padding: 16,
+    padding: 14,
     borderRadius: 8,
     borderWidth: 1,
     borderColor: '#e5e7eb',
-    fontSize: 16,
+    fontSize: 15,
   },
   button: {
     backgroundColor: '#4f46e5',
-    padding: 16,
+    padding: 14,
     borderRadius: 8,
     alignItems: 'center',
   },
@@ -107,8 +145,41 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
   },
+  dividerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: 20,
+  },
+  line: {
+    flex: 1,
+    height: 1,
+    backgroundColor: '#d1d5db',
+  },
+  dividerText: {
+    paddingHorizontal: 8,
+    fontSize: 11,
+    color: '#6b7280',
+    fontWeight: '600',
+  },
+  socialGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 10,
+    justifyContent: 'space-between',
+  },
+  socialBtn: {
+    width: '48%',
+    padding: 12,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  socialBtnText: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 14,
+  },
   linkContainer: {
-    marginTop: 16,
+    marginTop: 20,
     alignItems: 'center',
   },
   linkText: {

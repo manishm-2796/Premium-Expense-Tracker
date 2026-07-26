@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { motion } from 'framer-motion';
 import { UserPlus, Mail, Lock } from 'lucide-react';
+import SocialAuthButtons from '../components/SocialAuthButtons';
 import '../index.css';
 
 export default function SignupPage() {
@@ -48,9 +49,9 @@ export default function SignupPage() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        style={{ width: '100%', maxWidth: '400px', padding: '2rem' }}
+        style={{ width: '100%', maxWidth: '440px', padding: '2rem' }}
       >
-        <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
+        <div style={{ textAlign: 'center', marginBottom: '1.75rem' }}>
           <div style={{ display: 'inline-flex', padding: '1rem', background: 'var(--secondary-color)', borderRadius: '50%', marginBottom: '1rem', color: 'white' }}>
             <UserPlus size={24} />
           </div>
@@ -118,10 +119,12 @@ export default function SignupPage() {
             </div>
           </div>
 
-          <button type="submit" className="btn btn-primary" style={{ width: '100%', marginTop: '1rem' }} disabled={loading}>
+          <button type="submit" className="btn btn-primary" style={{ width: '100%', marginTop: '0.5rem' }} disabled={loading}>
             {loading ? 'Signing up...' : 'Sign Up'}
           </button>
         </form>
+
+        <SocialAuthButtons />
 
         <p style={{ textAlign: 'center', marginTop: '1.5rem', fontSize: '0.875rem', color: 'var(--text-muted)' }}>
           Already have an account? <Link to="/login" style={{ color: 'var(--primary-color)', textDecoration: 'none', fontWeight: '600' }}>Login</Link>
