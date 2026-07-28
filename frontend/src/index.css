@@ -65,16 +65,25 @@ body {
     radial-gradient(at 0% 50%, hsla(355,100%,93%,0.2) 0px, transparent 50%);
   color: var(--text-main);
   min-height: 100vh;
+  width: 100%;
   -webkit-font-smoothing: antialiased;
   overflow-x: hidden;
 }
 
+.app-layout {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
 /* App Layout & Containers */
 .main-content {
-  max-width: 1200px;
+  max-width: 1400px;
   margin: 0 auto;
   padding: 2rem 1.5rem;
   width: 100%;
+  flex: 1;
 }
 
 .page-header {

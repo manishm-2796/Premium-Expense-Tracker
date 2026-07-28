@@ -39,7 +39,7 @@ export default function Navbar({ activePage }) {
         boxShadow: 'var(--shadow-sm)'
       }}
     >
-      <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0.75rem 1.25rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <div style={{ maxWidth: '1400px', margin: '0 auto', padding: '0.75rem 1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         
         {/* Brand Logo */}
         <Link to="/dashboard" style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', textDecoration: 'none', color: 'var(--primary-color)' }}>
