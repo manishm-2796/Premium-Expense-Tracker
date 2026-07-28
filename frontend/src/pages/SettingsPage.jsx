@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Navbar from '../components/Navbar';
-import { authService, transactionService } from '../services/api';
+import { transactionService } from '../services/api';
 import { useAuth } from '../hooks/useAuth';
 import { useTheme } from '../contexts/ThemeContext';
-import { User, DollarSign, Key, Moon, Sun, Download, Upload, Save, CheckCircle2, AlertCircle, Globe } from 'lucide-react';
+import { User, Key, Moon, Sun, Download, Upload, Save, CheckCircle2, AlertCircle } from 'lucide-react';
 
 const CURRENCIES = [
   { code: 'USD', symbol: '$', name: 'US Dollar' },
@@ -20,8 +20,8 @@ const CURRENCIES = [
 ];
 
 const SettingsPage = () => {
-  const { user } = useAuth();
-  const { theme, toggleTheme } = useTheme();
+  const { user, updateProfile } = useAuth();
+  const { isDark, toggleDark } = useTheme();
 
   const [fullName, setFullName] = useState(user?.full_name || '');
   const [currency, setCurrency] = useState(user?.currency || 'USD');
@@ -33,13 +33,23 @@ const SettingsPage = () => {
   const [csvLoading, setCsvLoading] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
 
+  useEffect(() => {
+    if (user) {
+      setFullName(user.full_name || '');
+      setCurrency(user.currency || 'USD');
+      setDailyBudget(user.daily_budget || 0);
+      setMonthlyBudget(user.monthly_budget || 0);
+      setGeminiApiKey(user.gemini_api_key || '');
+    }
+  }, [user]);
+
   const handleSaveProfile = async (e) => {
     e.preventDefault();
     setSaving(true);
     setMessage({ type: '', text: '' });
 
     try {
-      await authService.updateProfile({
+      await updateProfile({
         full_name: fullName,
         currency: currency,
         daily_budget: parseFloat(dailyBudget) || 0,
@@ -89,9 +99,9 @@ const SettingsPage = () => {
   };
 
   return (
-    <div className="app-layout">
+    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
       <Navbar activePage="settings" />
-      <div className="main-content">
+      <main className="main-content" style={{ flex: 1 }}>
         <div className="page-header">
           <div>
             <h2>Settings & Preferences ⚙️</h2>
@@ -106,25 +116,25 @@ const SettingsPage = () => {
           </div>
         )}
 
-        <div className="settings-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
+        <div className="settings-grid">
           {/* Profile & Currency Form */}
-          <div className="glass-card" style={{ padding: '1.75rem' }}>
-            <h3 style={{ marginBottom: '1.25rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <div className="glass-card" style={{ padding: '1.5rem' }}>
+            <h3 style={{ marginBottom: '1.25rem', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '1.1rem', fontWeight: '700' }}>
               <User size={20} style={{ color: 'var(--primary-color)' }} />
               Profile & Currency
             </h3>
 
             <form onSubmit={handleSaveProfile}>
               <div className="form-group" style={{ marginBottom: '1rem' }}>
-                <label>Account Email</label>
-                <input type="text" className="form-input" value={user?.email || ''} disabled style={{ opacity: 0.7 }} />
+                <label className="input-label">Account Email</label>
+                <input type="text" className="input-field" value={user?.email || ''} disabled style={{ opacity: 0.7 }} />
               </div>
 
               <div className="form-group" style={{ marginBottom: '1rem' }}>
-                <label>Full Name</label>
+                <label className="input-label">Full Name</label>
                 <input 
                   type="text" 
-                  className="form-input" 
+                  className="input-field" 
                   value={fullName} 
                   onChange={(e) => setFullName(e.target.value)} 
                   placeholder="Enter full name" 
@@ -132,9 +142,9 @@ const SettingsPage = () => {
               </div>
 
               <div className="form-group" style={{ marginBottom: '1rem' }}>
-                <label>Preferred Currency</label>
+                <label className="input-label">Preferred Currency</label>
                 <select 
-                  className="form-input" 
+                  className="input-field" 
                   value={currency} 
                   onChange={(e) => setCurrency(e.target.value)}
                 >
@@ -146,22 +156,22 @@ const SettingsPage = () => {
                 </select>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
-                <div className="form-group">
-                  <label>Daily Budget Limit</label>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '1rem', marginBottom: '1rem' }}>
+                <div className="form-group" style={{ marginBottom: 0 }}>
+                  <label className="input-label">Daily Budget Limit</label>
                   <input 
                     type="number" 
-                    className="form-input" 
+                    className="input-field" 
                     value={dailyBudget} 
                     onChange={(e) => setDailyBudget(e.target.value)} 
                     placeholder="0" 
                   />
                 </div>
-                <div className="form-group">
-                  <label>Monthly Budget Limit</label>
+                <div className="form-group" style={{ marginBottom: 0 }}>
+                  <label className="input-label">Monthly Budget Limit</label>
                   <input 
                     type="number" 
-                    className="form-input" 
+                    className="input-field" 
                     value={monthlyBudget} 
                     onChange={(e) => setMonthlyBudget(e.target.value)} 
                     placeholder="0" 
@@ -170,18 +180,18 @@ const SettingsPage = () => {
               </div>
 
               <div className="form-group" style={{ marginBottom: '1.5rem' }}>
-                <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  <Key size={16} /> Personal Gemini API Key (For AI Assistant)
+                <label className="input-label" style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                  <Key size={16} /> Personal Gemini API Key
                 </label>
                 <input 
                   type="password" 
-                  className="form-input" 
+                  className="input-field" 
                   value={geminiApiKey} 
                   onChange={(e) => setGeminiApiKey(e.target.value)} 
                   placeholder="AIZASy..." 
                 />
-                <small style={{ color: 'var(--text-muted)', fontSize: '0.75rem', marginTop: '0.25rem', display: 'block' }}>
-                  Your API key is stored securely to enable personalized Gemini AI responses.
+                <small style={{ color: 'var(--text-muted)', fontSize: '0.75rem', marginTop: '0.35rem', display: 'block' }}>
+                  Enables personalized Gemini AI responses in AI Advisor.
                 </small>
               </div>
 
@@ -195,31 +205,31 @@ const SettingsPage = () => {
           {/* Theme & Data Import/Export */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
             {/* Theme Toggle */}
-            <div className="glass-card" style={{ padding: '1.75rem' }}>
-              <h3 style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                {theme === 'dark' ? <Moon size={20} style={{ color: '#8b5cf6' }} /> : <Sun size={20} style={{ color: '#f59e0b' }} />}
+            <div className="glass-card" style={{ padding: '1.5rem' }}>
+              <h3 style={{ marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '1.1rem', fontWeight: '700' }}>
+                {isDark ? <Moon size={20} style={{ color: '#8b5cf6' }} /> : <Sun size={20} style={{ color: '#f59e0b' }} />}
                 Appearance Theme
               </h3>
               <p className="subtitle" style={{ marginBottom: '1.25rem' }}>Switch between dark mode and sleek light mode</p>
 
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span>Current Mode: <strong>{theme === 'dark' ? 'Dark Mode 🌙' : 'Light Mode ☀️'}</strong></span>
-                <button className="btn btn-secondary" onClick={toggleTheme}>
-                  {theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.75rem' }}>
+                <span style={{ fontSize: '0.9rem' }}>Current Mode: <strong>{isDark ? 'Dark Mode 🌙' : 'Light Mode ☀️'}</strong></span>
+                <button className="btn btn-secondary" onClick={toggleDark} style={{ padding: '0.55rem 0.9rem', fontSize: '0.85rem' }}>
+                  {isDark ? 'Switch to Light' : 'Switch to Dark'}
                 </button>
               </div>
             </div>
 
             {/* CSV Backup & Restore */}
-            <div className="glass-card" style={{ padding: '1.75rem' }}>
-              <h3 style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <div className="glass-card" style={{ padding: '1.5rem' }}>
+              <h3 style={{ marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '1.1rem', fontWeight: '700' }}>
                 <Download size={20} style={{ color: 'var(--primary-color)' }} />
                 Data Migration & Backup
               </h3>
               <p className="subtitle" style={{ marginBottom: '1.25rem' }}>Export your transactions or import external bank CSV files</p>
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                <button className="btn btn-secondary" onClick={handleExportCSV} style={{ justifyContent: 'center' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
+                <button className="btn btn-secondary" onClick={handleExportCSV} style={{ justifyContent: 'center', padding: '0.65rem' }}>
                   <Download size={18} />
                   Export All Transactions to CSV
                 </button>
@@ -232,16 +242,16 @@ const SettingsPage = () => {
                     style={{ display: 'none' }} 
                     onChange={handleImportCSV} 
                   />
-                  <label htmlFor="csv-settings-input" className="btn btn-outline" style={{ display: 'flex', justifyContent: 'center', cursor: 'pointer' }}>
+                  <label htmlFor="csv-settings-input" className="btn btn-outline" style={{ display: 'flex', justifyContent: 'center', cursor: 'pointer', padding: '0.65rem' }}>
                     <Upload size={18} />
-                    {csvLoading ? 'Importing CSV Data...' : 'Import Transactions from CSV'}
+                    {csvLoading ? 'Importing CSV...' : 'Import Transactions from CSV'}
                   </label>
                 </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
+      </main>
     </div>
   );
 };
