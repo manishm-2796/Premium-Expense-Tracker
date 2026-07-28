@@ -26,14 +26,13 @@ class UserResponse(BaseModel):
     gemini_api_key: Optional[str] = None
     card_last_four: Optional[str] = None
     card_expiry: Optional[str] = None
-    daily_budget: float
+    daily_budget: Optional[float] = 0.0
     monthly_budget: Optional[float] = None
-    currency: str
+    currency: Optional[str] = "USD"
     push_token: Optional[str] = None
-    created_at: datetime
+    created_at: Optional[datetime] = None
     
-    class Config:
-        from_attributes = True
+    model_config = {"from_attributes": True}
 
 class UserUpdate(BaseModel):
     full_name: Optional[str] = None

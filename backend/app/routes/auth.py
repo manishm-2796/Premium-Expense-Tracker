@@ -20,7 +20,12 @@ def signup(user_data: UserCreate, db: Session = Depends(get_db)):
     
     # Create new user
     hashed_password = hash_password(user_data.password)
-    new_user = User(email=user_data.email, password_hash=hashed_password)
+    new_user = User(
+        email=user_data.email, 
+        password_hash=hashed_password,
+        daily_budget=0.0,
+        currency="USD"
+    )
     db.add(new_user)
     db.commit()
     db.refresh(new_user)
@@ -66,7 +71,9 @@ def social_login(data: SocialLoginRequest, db: Session = Depends(get_db)):
         user = User(
             email=data.email,
             password_hash=random_pwd,
-            full_name=data.full_name or data.email.split("@")[0].title()
+            full_name=data.full_name or data.email.split("@")[0].title(),
+            daily_budget=0.0,
+            currency="USD"
         )
         db.add(user)
         db.commit()
