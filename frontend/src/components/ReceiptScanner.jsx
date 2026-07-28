@@ -150,6 +150,7 @@ export default function ReceiptScanner({ onSuccess, onClose }) {
   return (
     <AnimatePresence>
       <div 
+        onClick={(e) => { if (e.target === e.currentTarget) { stopCamera(); onClose?.(); } }}
         style={{
           position: 'fixed',
           top: 0,
