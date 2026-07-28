@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import Navbar from '../components/Navbar';
-import { transactionService } from '../services/api';
+import { transactionService, authService } from '../services/api';
 import { useAuth } from '../hooks/useAuth';
 import { useTheme } from '../contexts/ThemeContext';
 import { User, Key, Moon, Sun, Download, Upload, Save, CheckCircle2, AlertCircle } from 'lucide-react';
+import TwoFactorSetup from '../components/TwoFactorSetup';
 
 const CURRENCIES = [
   { code: 'USD', symbol: '$', name: 'US Dollar' },
@@ -247,6 +248,12 @@ const SettingsPage = () => {
               </div>
             </div>
           </div>
+
+          {/* Section 4: Two-Factor Authentication (2FA) Security */}
+          <TwoFactorSetup 
+            user={user} 
+            onUpdate={() => authService.getMe().then(res => updateProfile(res.data))} 
+          />
         </div>
       </main>
     </div>

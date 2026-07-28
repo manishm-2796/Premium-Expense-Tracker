@@ -66,5 +66,11 @@ export const receiptService = {
   getAll: () => api.get('/receipts/')
 };
 
+export const twoFactorService = {
+  setup: () => api.post('/auth/2fa/setup'),
+  confirm: (code) => api.post('/auth/2fa/confirm', { code }),
+  disable: () => api.post('/auth/2fa/disable', {})
+};
+
 export default api;
 

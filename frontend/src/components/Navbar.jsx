@@ -6,6 +6,8 @@ import { LogOut, Wallet, Moon, Sun, LayoutDashboard, TrendingUp, Target, Refresh
 import { motion, AnimatePresence } from 'framer-motion';
 import ReceiptScanner from './ReceiptScanner';
 
+import SyncStatus from './SyncStatus';
+
 export default function Navbar({ activePage }) {
   const { logout, user, updateProfile } = useAuth();
   const { isDark, toggleDark } = useTheme();
@@ -85,6 +87,7 @@ export default function Navbar({ activePage }) {
 
         {/* Action Controls & Mobile Toggle */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+          <SyncStatus />
           <select
             value={user?.currency || 'USD'}
             onChange={(e) => updateProfile({ currency: e.target.value })}

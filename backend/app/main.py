@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.database import Base, engine
-from app.routes import auth, categories, transactions, recurring, chat, receipts
+from app.routes import auth, categories, transactions, recurring, chat, receipts, two_factor
 
 # Create tables
 Base.metadata.create_all(bind=engine)
@@ -24,6 +24,7 @@ app.include_router(transactions.router)
 app.include_router(recurring.router)
 app.include_router(chat.router)
 app.include_router(receipts.router)
+app.include_router(two_factor.router)
 
 import asyncio
 from apscheduler.schedulers.asyncio import AsyncIOScheduler

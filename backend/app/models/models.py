@@ -19,6 +19,9 @@ class User(Base):
     monthly_budget = Column(Float, nullable=True)
     currency = Column(String, default="USD")
     push_token = Column(String, nullable=True)
+    two_factor_enabled = Column(Boolean, default=False)
+    two_factor_secret = Column(String, nullable=True)
+    backup_codes = Column(String, nullable=True)  # JSON string of backup codes
     created_at = Column(DateTime, default=datetime.utcnow)
     
     transactions = relationship("Transaction", back_populates="user", cascade="all, delete-orphan")
