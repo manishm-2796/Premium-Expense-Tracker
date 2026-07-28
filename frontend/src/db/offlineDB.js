@@ -3,13 +3,17 @@ const DB_NAME = 'ExpenseTrackerOfflineDB';
 const DB_VERSION = 1;
 
 class OfflineStorage {
-  constructor() {
-    self.indexedDB = self.indexedDB || self.mozIndexedDB || self.webkitIndexedDB || self.msIndexedDB;
+  getIdb() {
+    if (typeof window === 'undefined') return null;
+    return window.indexedDB || window.mozIndexedDB || window.webkitIndexedDB || window.msIndexedDB;
   }
 
   async openDB() {
+    const idb = this.getIdb();
+    if (!idb) return null;
+
     return new Promise((resolve, reject) => {
-      const request = indexedDB.open(DB_NAME, DB_VERSION);
+      const request = idb.open(DB_NAME, DB_VERSION);
 
       request.onupgradeneeded = (event) => {
         const db = event.target.result;
@@ -31,64 +35,89 @@ class OfflineStorage {
   }
 
   async addPendingTx(txData) {
-    const db = await this.openDB();
-    return new Promise((resolve, reject) => {
-      const tx = db.transaction(['transactions', 'syncQueue'], 'readwrite');
-      const txStore = tx.objectStore('transactions');
-      const queueStore = tx.objectStore('syncQueue');
+    try {
+      const db = await this.openDB();
+      if (!db) return false;
 
-      const record = { ...txData, synced: false, createdAt: new Date().toISOString() };
-      const req1 = txStore.add(record);
+      return new Promise((resolve, reject) => {
+        const tx = db.transaction(['transactions', 'syncQueue'], 'readwrite');
+        const txStore = tx.objectStore('transactions');
+        const queueStore = tx.objectStore('syncQueue');
 
-      req1.onsuccess = (e) => {
-        const localId = e.target.result;
-        queueStore.add({
-          action: 'CREATE_TRANSACTION',
-          localId,
-          data: txData,
-          status: 'pending',
-          timestamp: new Date().toISOString()
-        });
-      };
+        const record = { ...txData, synced: false, createdAt: new Date().toISOString() };
+        const req1 = txStore.add(record);
 
-      tx.oncomplete = () => resolve(true);
-      tx.onerror = (e) => reject(e.target.error);
-    });
+        req1.onsuccess = (e) => {
+          const localId = e.target.result;
+          queueStore.add({
+            action: 'CREATE_TRANSACTION',
+            localId,
+            data: txData,
+            status: 'pending',
+            timestamp: new Date().toISOString()
+          });
+        };
+
+        tx.oncomplete = () => resolve(true);
+        tx.onerror = (e) => reject(e.target.error);
+      });
+    } catch (e) {
+      console.warn('IndexedDB write error:', e);
+      return false;
+    }
   }
 
   async getUnsyncedCount() {
-    const db = await this.openDB();
-    return new Promise((resolve) => {
-      const tx = db.transaction(['syncQueue'], 'readonly');
-      const store = tx.objectStore('syncQueue');
-      const index = store.index('status');
-      const req = index.count('pending');
+    try {
+      const db = await this.openDB();
+      if (!db) return 0;
 
-      req.onsuccess = () => resolve(req.result || 0);
-      req.onerror = () => resolve(0);
-    });
+      return new Promise((resolve) => {
+        const tx = db.transaction(['syncQueue'], 'readonly');
+        const store = tx.objectStore('syncQueue');
+        const index = store.index('status');
+        const req = index.count('pending');
+
+        req.onsuccess = () => resolve(req.result || 0);
+        req.onerror = () => resolve(0);
+      });
+    } catch (e) {
+      return 0;
+    }
   }
 
   async getPendingItems() {
-    const db = await this.openDB();
-    return new Promise((resolve) => {
-      const tx = db.transaction(['syncQueue'], 'readonly');
-      const store = tx.objectStore('syncQueue');
-      const req = store.getAll();
+    try {
+      const db = await this.openDB();
+      if (!db) return [];
 
-      req.onsuccess = () => resolve(req.result || []);
-      req.onerror = () => resolve([]);
-    });
+      return new Promise((resolve) => {
+        const tx = db.transaction(['syncQueue'], 'readonly');
+        const store = tx.objectStore('syncQueue');
+        const req = store.getAll();
+
+        req.onsuccess = () => resolve(req.result || []);
+        req.onerror = () => resolve([]);
+      });
+    } catch (e) {
+      return [];
+    }
   }
 
   async clearQueueItem(id) {
-    const db = await this.openDB();
-    return new Promise((resolve) => {
-      const tx = db.transaction(['syncQueue'], 'readwrite');
-      const store = tx.objectStore('syncQueue');
-      store.delete(id);
-      tx.oncomplete = () => resolve(true);
-    });
+    try {
+      const db = await this.openDB();
+      if (!db) return true;
+
+      return new Promise((resolve) => {
+        const tx = db.transaction(['syncQueue'], 'readwrite');
+        const store = tx.objectStore('syncQueue');
+        store.delete(id);
+        tx.oncomplete = () => resolve(true);
+      });
+    } catch (e) {
+      return true;
+    }
   }
 }
 
