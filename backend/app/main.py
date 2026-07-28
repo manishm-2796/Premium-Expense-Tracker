@@ -1,10 +1,10 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.database import Base, engine
+from app.database import Base, engine, init_db_schema
 from app.routes import auth, categories, transactions, recurring, chat, receipts, two_factor
 
-# Create tables
-Base.metadata.create_all(bind=engine)
+# Initialize & Migrate Database Schema
+init_db_schema()
 
 app = FastAPI(title="Expense Tracker API", version="1.0.0")
 
