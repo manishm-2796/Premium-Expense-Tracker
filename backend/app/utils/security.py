@@ -9,18 +9,26 @@ from app.database import get_db
 from app.models.models import User
 from sqlalchemy.orm import Session
 
+import bcrypt
 import hashlib
 
-# Password hashing
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
 def hash_password(password: str) -> str:
-    sha_pw = hashlib.sha256(password.encode('utf-8')).hexdigest()
-    return pwd_context.hash(sha_pw)
+    sha_bytes = hashlib.sha256(password.encode('utf-8')).hexdigest().encode('utf-8')
+    salt = bcrypt.gensalt()
+    return bcrypt.hashpw(sha_bytes, salt).decode('utf-8')
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
-    sha_pw = hashlib.sha256(plain_password.encode('utf-8')).hexdigest()
-    return pwd_context.verify(sha_pw, hashed_password)
+    try:
+        sha_bytes = hashlib.sha256(plain_password.encode('utf-8')).hexdigest().encode('utf-8')
+        if bcrypt.checkpw(sha_bytes, hashed_password.encode('utf-8')):
+            return True
+    except Exception:
+        pass
+    try:
+        raw_bytes = plain_password.encode('utf-8')[:72]
+        return bcrypt.checkpw(raw_bytes, hashed_password.encode('utf-8'))
+    except Exception:
+        return False
 
 # JWT tokens
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
