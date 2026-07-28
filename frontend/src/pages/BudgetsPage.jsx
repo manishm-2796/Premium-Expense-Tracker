@@ -1,20 +1,29 @@
 import React, { useState, useEffect } from 'react';
 import Navbar from '../components/Navbar';
-import { transactionService, authService, categoryService } from '../services/api';
+import { transactionService, categoryService } from '../services/api';
 import { useAuth } from '../hooks/useAuth';
-import { Target, AlertTriangle, CheckCircle2, DollarSign, Edit3, Save, Plus } from 'lucide-react';
+import { Target, AlertTriangle, CheckCircle2, Edit3, Save, Check } from 'lucide-react';
 
 const BudgetsPage = () => {
-  const { user, login } = useAuth();
+  const { user, updateProfile } = useAuth();
   const [summary, setSummary] = useState(null);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [editingBudget, setEditingBudget] = useState(false);
   const [dailyBudget, setDailyBudget] = useState(user?.daily_budget || 0);
   const [monthlyBudget, setMonthlyBudget] = useState(user?.monthly_budget || 0);
+  const [categoryInputState, setCategoryInputState] = useState({});
+  const [savedCatId, setSavedCatId] = useState(null);
   const [message, setMessage] = useState({ type: '', text: '' });
 
   const currencySymbol = user?.currency || 'USD';
+
+  useEffect(() => {
+    if (user) {
+      setDailyBudget(user.daily_budget || 0);
+      setMonthlyBudget(user.monthly_budget || 0);
+    }
+  }, [user]);
 
   const fetchData = async () => {
     try {
@@ -24,7 +33,24 @@ const BudgetsPage = () => {
         categoryService.getAll()
       ]);
       setSummary(sumRes.data);
-      setCategories(catRes.data);
+
+      // Deduplicate categories by ID
+      const uniqueCats = [];
+      const seen = new Set();
+      for (const cat of catRes.data) {
+        if (!seen.has(cat.id)) {
+          seen.add(cat.id);
+          uniqueCats.push(cat);
+        }
+      }
+      setCategories(uniqueCats);
+
+      // Initialize category inputs
+      const initialInputs = {};
+      uniqueCats.forEach(c => {
+        initialInputs[c.id] = c.budget_limit || '';
+      });
+      setCategoryInputState(initialInputs);
     } catch (err) {
       console.error('Failed to load budget data', err);
     } finally {
@@ -39,7 +65,7 @@ const BudgetsPage = () => {
   const handleSaveUserBudget = async (e) => {
     e.preventDefault();
     try {
-      const res = await authService.updateProfile({
+      await updateProfile({
         daily_budget: parseFloat(dailyBudget) || 0,
         monthly_budget: parseFloat(monthlyBudget) || 0
       });
@@ -51,9 +77,12 @@ const BudgetsPage = () => {
     }
   };
 
-  const handleUpdateCategoryBudget = async (catId, newLimit) => {
+  const handleUpdateCategoryBudget = async (catId) => {
     try {
+      const newLimit = categoryInputState[catId];
       await categoryService.update(catId, { budget_limit: parseFloat(newLimit) || 0 });
+      setSavedCatId(catId);
+      setTimeout(() => setSavedCatId(null), 2000);
       fetchData();
     } catch (err) {
       console.error('Failed to update category budget limit', err);
@@ -66,9 +95,9 @@ const BudgetsPage = () => {
   const percentUsed = targetMonthly > 0 ? Math.min(100, (totalSpent / targetMonthly) * 100) : 0;
 
   return (
-    <div className="app-layout">
+    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
       <Navbar activePage="budgets" />
-      <div className="main-content">
+      <main className="main-content" style={{ flex: 1 }}>
         <div className="page-header">
           <div>
             <h2>Budget & Limits 🎯</h2>
@@ -90,18 +119,17 @@ const BudgetsPage = () => {
         )}
 
         {/* Overall Budget Overview Card */}
-        <div className="glass-card budget-overview-card" style={{ marginBottom: '2rem', padding: '1.75rem' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+        <div className="glass-card" style={{ marginBottom: '2rem', padding: '1.75rem' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', flexWrap: 'wrap', gap: '1rem' }}>
             <div>
-              <span style={{ fontSize: '0.9rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '1px' }}>
+              <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '1px' }}>
                 Monthly Budget Limit
               </span>
-              <h1 style={{ fontSize: '2.25rem', marginTop: '0.25rem' }}>
+              <h1 style={{ fontSize: '2rem', marginTop: '0.25rem' }}>
                 {currencySymbol} {totalSpent.toFixed(2)} <span style={{ fontSize: '1.2rem', color: 'var(--text-muted)' }}>/ {targetMonthly > 0 ? `${currencySymbol} ${targetMonthly.toFixed(2)}` : 'No limit set'}</span>
               </h1>
             </div>
             <div 
-              className="badge" 
               style={{ 
                 padding: '0.5rem 1rem', 
                 borderRadius: '20px', 
@@ -110,7 +138,8 @@ const BudgetsPage = () => {
                 display: 'flex',
                 alignItems: 'center',
                 gap: '0.5rem',
-                fontWeight: 600
+                fontWeight: 600,
+                fontSize: '0.85rem'
               }}
             >
               {isExceeded ? <AlertTriangle size={18} /> : <CheckCircle2 size={18} />}
@@ -136,30 +165,30 @@ const BudgetsPage = () => {
           {/* Edit Budget Inline Form */}
           {editingBudget && (
             <form onSubmit={handleSaveUserBudget} style={{ marginTop: '1.5rem', paddingTop: '1.5rem', borderTop: '1px solid var(--border-color)' }}>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr auto', gap: '1rem', alignItems: 'end' }}>
-                <div className="form-group">
-                  <label>Daily Budget ({currencySymbol})</label>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', alignItems: 'end' }}>
+                <div className="form-group" style={{ marginBottom: 0 }}>
+                  <label className="input-label">Daily Budget ({currencySymbol})</label>
                   <input 
                     type="number" 
-                    className="form-input" 
+                    className="input-field" 
                     value={dailyBudget} 
                     onChange={(e) => setDailyBudget(e.target.value)} 
                     placeholder="e.g. 50"
                   />
                 </div>
-                <div className="form-group">
-                  <label>Monthly Budget ({currencySymbol})</label>
+                <div className="form-group" style={{ marginBottom: 0 }}>
+                  <label className="input-label">Monthly Budget ({currencySymbol})</label>
                   <input 
                     type="number" 
-                    className="form-input" 
+                    className="input-field" 
                     value={monthlyBudget} 
                     onChange={(e) => setMonthlyBudget(e.target.value)} 
                     placeholder="e.g. 1500"
                   />
                 </div>
-                <button type="submit" className="btn btn-primary">
+                <button type="submit" className="btn btn-primary" style={{ height: '42px' }}>
                   <Save size={18} />
-                  Save
+                  Save Limits
                 </button>
               </div>
             </form>
@@ -167,8 +196,8 @@ const BudgetsPage = () => {
         </div>
 
         {/* Category Budget Limits */}
-        <h3 style={{ marginBottom: '1rem' }}>Category Budget Allocations</h3>
-        <div className="category-budget-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '1.25rem' }}>
+        <h3 style={{ marginBottom: '1rem', fontSize: '1.2rem', fontWeight: '700' }}>Category Budget Allocations</h3>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '1.25rem' }}>
           {categories.map((cat) => {
             const spent = summary?.by_category?.[cat.name] || 0;
             const limit = cat.budget_limit || 0;
@@ -183,14 +212,14 @@ const BudgetsPage = () => {
                     <strong style={{ fontSize: '1.05rem' }}>{cat.name}</strong>
                   </div>
                   {catExceeded && (
-                    <span className="badge" style={{ backgroundColor: 'rgba(239, 68, 68, 0.15)', color: '#ef4444', fontSize: '0.75rem', padding: '0.2rem 0.5rem' }}>
+                    <span style={{ backgroundColor: 'rgba(239, 68, 68, 0.15)', color: '#ef4444', fontSize: '0.75rem', padding: '0.2rem 0.5rem', borderRadius: '12px', fontWeight: '600' }}>
                       Over Limit
                     </span>
                   )}
                 </div>
 
                 <div style={{ marginBottom: '0.75rem' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem', marginBottom: '0.25rem' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', marginBottom: '0.25rem' }}>
                     <span>Spent: {currencySymbol} {spent.toFixed(2)}</span>
                     <span style={{ color: 'var(--text-muted)' }}>Limit: {currencySymbol} {limit > 0 ? limit.toFixed(2) : 'None'}</span>
                   </div>
@@ -206,21 +235,30 @@ const BudgetsPage = () => {
                 </div>
 
                 <div style={{ marginTop: '0.75rem', paddingTop: '0.75rem', borderTop: '1px dashed var(--border-color)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  <label style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Set Limit:</label>
+                  <label style={{ fontSize: '0.8rem', color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>Set Limit:</label>
                   <input 
                     type="number" 
-                    className="form-input" 
-                    style={{ padding: '0.25rem 0.5rem', fontSize: '0.85rem' }} 
-                    defaultValue={limit || ''} 
+                    className="input-field" 
+                    style={{ padding: '0.4rem 0.6rem', fontSize: '0.85rem', flex: 1 }} 
+                    value={categoryInputState[cat.id] !== undefined ? categoryInputState[cat.id] : (limit || '')} 
+                    onChange={(e) => setCategoryInputState({ ...categoryInputState, [cat.id]: e.target.value })}
+                    onKeyDown={(e) => e.key === 'Enter' && handleUpdateCategoryBudget(cat.id)}
                     placeholder="Enter limit..."
-                    onBlur={(e) => handleUpdateCategoryBudget(cat.id, e.target.value)}
                   />
+                  <button
+                    type="button"
+                    className="btn btn-primary"
+                    style={{ padding: '0.4rem 0.75rem', fontSize: '0.8rem' }}
+                    onClick={() => handleUpdateCategoryBudget(cat.id)}
+                  >
+                    {savedCatId === cat.id ? <Check size={16} /> : 'Save'}
+                  </button>
                 </div>
               </div>
             );
           })}
         </div>
-      </div>
+      </main>
     </div>
   );
 };
