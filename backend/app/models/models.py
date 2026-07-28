@@ -24,6 +24,7 @@ class User(Base):
     transactions = relationship("Transaction", back_populates="user", cascade="all, delete-orphan")
     categories = relationship("Category", back_populates="user", cascade="all, delete-orphan")
     recurring_expenses = relationship("RecurringExpense", back_populates="user", cascade="all, delete-orphan")
+    receipts = relationship("Receipt", back_populates="user", cascade="all, delete-orphan")
 
 
 class Category(Base):
@@ -52,7 +53,7 @@ class Transaction(Base):
     exchange_rate = Column(Float, nullable=True)
     description = Column(String)
     date = Column(DateTime, default=datetime.utcnow)
-    source = Column(String, default="manual")  # "manual" or "csv"
+    source = Column(String, default="manual")  # "manual", "csv", or "ocr"
     created_at = Column(DateTime, default=datetime.utcnow)
     
     user = relationship("User", back_populates="transactions")
@@ -71,3 +72,25 @@ class RecurringExpense(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
     
     user = relationship("User", back_populates="recurring_expenses")
+
+
+class Receipt(Base):
+    __tablename__ = "receipts"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"))
+    merchant = Column(String, nullable=False)
+    amount = Column(Float, nullable=False)
+    currency = Column(String, default="USD")
+    date = Column(String, nullable=False)
+    time = Column(String, nullable=True)
+    category = Column(String, nullable=True)
+    items = Column(String, nullable=True)  # JSON string representation of items
+    image_url = Column(String, nullable=True)
+    confidence = Column(Float, default=0.9)
+    status = Column(String, default="pending_review")
+    extraction_method = Column(String, default="gemini")
+    notes = Column(String, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    user = relationship("User", back_populates="receipts")

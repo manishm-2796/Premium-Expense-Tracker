@@ -2,8 +2,9 @@ import React, { useState } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { useTheme } from '../contexts/ThemeContext';
-import { LogOut, Wallet, Moon, Sun, LayoutDashboard, TrendingUp, Target, RefreshCw, Bot, Settings, Menu, X } from 'lucide-react';
+import { LogOut, Wallet, Moon, Sun, LayoutDashboard, TrendingUp, Target, RefreshCw, Bot, Settings, Menu, X, Camera } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import ReceiptScanner from './ReceiptScanner';
 
 export default function Navbar({ activePage }) {
   const { logout, user, updateProfile } = useAuth();
@@ -11,6 +12,7 @@ export default function Navbar({ activePage }) {
   const navigate = useNavigate();
   const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [showScanner, setShowScanner] = useState(false);
 
   const handleLogout = () => {
     logout();
@@ -107,6 +109,16 @@ export default function Navbar({ activePage }) {
             <option value="CHF">CHF (Fr)</option>
             <option value="CNY">CNY (¥)</option>
           </select>
+
+          <button 
+            onClick={() => setShowScanner(true)}
+            className="btn btn-primary"
+            style={{ padding: '0.4rem 0.75rem', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}
+            title="Scan Receipt OCR"
+          >
+            <Camera size={15} />
+            <span>Scan Receipt</span>
+          </button>
 
           <button 
             onClick={toggleDark}
@@ -226,6 +238,13 @@ export default function Navbar({ activePage }) {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {showScanner && (
+        <ReceiptScanner 
+          onSuccess={() => window.location.reload()} 
+          onClose={() => setShowScanner(false)} 
+        />
+      )}
     </header>
   );
 }

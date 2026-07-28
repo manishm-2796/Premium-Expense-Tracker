@@ -60,5 +60,11 @@ export const chatService = {
   sendMessage: (data) => api.post('/chat/', data)
 };
 
+export const receiptService = {
+  process: (data) => api.post('/receipts/process', data),
+  confirm: (receiptId, confirmedData) => api.post(`/receipts/confirm/${receiptId}`, confirmedData),
+  getAll: () => api.get('/receipts/')
+};
+
 export default api;
 
