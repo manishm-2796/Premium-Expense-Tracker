@@ -14,20 +14,20 @@ export default function DashboardPage() {
 
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-      <Navbar />
+      <Navbar activePage="dashboard" />
       
-      <main style={{ padding: '2rem', maxWidth: '1200px', margin: '0 auto', width: '100%', flex: 1 }}>
+      <main className="main-content" style={{ flex: 1 }}>
         <motion.div 
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.5 }}
-          style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))', gap: '2rem', alignItems: 'start' }}
+          className="dashboard-grid"
         >
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem', flex: 2 }}>
+          <div style={{ width: '100%' }}>
             <DashboardCharts refreshKey={refreshKey} />
           </div>
           
-          <div style={{ flex: 1, minWidth: '350px' }}>
+          <div style={{ width: '100%' }}>
             <TransactionForm onTransactionAdded={handleTransactionAdded} />
           </div>
         </motion.div>

@@ -89,19 +89,19 @@ export default function TransactionList({ refreshKey }) {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, delay: 0.3 }}
       className="glass-panel"
-      style={{ padding: '2rem', marginTop: '2rem' }}
+      style={{ padding: '1.75rem', marginTop: '1.75rem' }}
     >
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
-        <h2 style={{ fontSize: '1.25rem', fontWeight: '600' }}>Recent Transactions</h2>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem', flexWrap: 'wrap', gap: '1rem' }}>
+        <h2 style={{ fontSize: '1.2rem', fontWeight: '700' }}>Recent Transactions</h2>
         
-        <div style={{ display: 'flex', gap: '1rem' }}>
-          <div style={{ position: 'relative' }}>
+        <div className="filter-controls-row" style={{ display: 'flex', gap: '0.65rem', flexWrap: 'wrap', width: 'auto' }}>
+          <div style={{ position: 'relative', flex: 1, minWidth: '130px' }}>
             <Search size={16} style={{ position: 'absolute', top: '50%', left: '0.75rem', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
             <input
               type="text"
               placeholder="Search..."
               className="input-field"
-              style={{ paddingLeft: '2.25rem', width: '200px' }}
+              style={{ paddingLeft: '2.25rem', width: '100%' }}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
@@ -111,7 +111,7 @@ export default function TransactionList({ refreshKey }) {
             className="input-field"
             value={selectedCategory}
             onChange={(e) => setSelectedCategory(e.target.value)}
-            style={{ width: '150px' }}
+            style={{ flex: 1, minWidth: '130px' }}
           >
             <option value="">All Categories</option>
             {categories.map(cat => (
@@ -122,10 +122,10 @@ export default function TransactionList({ refreshKey }) {
           <button 
             onClick={handleExport}
             className="btn btn-primary"
-            style={{ display: 'flex', gap: '0.5rem', background: 'var(--secondary-color)' }}
+            style={{ display: 'inline-flex', gap: '0.4rem', background: 'var(--secondary-color)', padding: '0.55rem 0.9rem', fontSize: '0.85rem' }}
           >
-            <Download size={16} />
-            Export CSV
+            <Download size={15} />
+            Export
           </button>
           
           <input 
@@ -138,24 +138,24 @@ export default function TransactionList({ refreshKey }) {
           <button 
             onClick={() => fileInputRef.current?.click()}
             className="btn btn-primary"
-            style={{ display: 'flex', gap: '0.5rem', background: '#3b82f6' }}
+            style={{ display: 'inline-flex', gap: '0.4rem', background: '#3b82f6', padding: '0.55rem 0.9rem', fontSize: '0.85rem' }}
             disabled={loading}
           >
-            <Upload size={16} />
-            Import CSV
+            <Upload size={15} />
+            Import
           </button>
         </div>
       </div>
 
-      <div style={{ overflowX: 'auto' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+      <div className="table-responsive">
+        <table className="custom-table">
           <thead>
-            <tr style={{ borderBottom: '2px solid #f3f4f6', color: 'var(--text-muted)' }}>
-              <th style={{ padding: '1rem', fontWeight: '500' }}>Date</th>
-              <th style={{ padding: '1rem', fontWeight: '500' }}>Description</th>
-              <th style={{ padding: '1rem', fontWeight: '500' }}>Category</th>
-              <th style={{ padding: '1rem', fontWeight: '500' }}>Amount</th>
-              <th style={{ padding: '1rem', fontWeight: '500' }}></th>
+            <tr>
+              <th>Date</th>
+              <th>Description</th>
+              <th>Category</th>
+              <th>Amount</th>
+              <th style={{ textAlign: 'right' }}>Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -174,37 +174,35 @@ export default function TransactionList({ refreshKey }) {
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, x: -20 }}
                     transition={{ duration: 0.2, delay: i * 0.05 }}
-                    style={{ borderBottom: '1px solid #f3f4f6', transition: 'background 0.2s' }}
-                    onMouseOver={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.5)'}
-                    onMouseOut={(e) => e.currentTarget.style.background = 'transparent'}
                   >
-                    <td style={{ padding: '1rem', fontSize: '0.875rem' }}>
-                      {new Date(transaction.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                    <td style={{ fontSize: '0.85rem', whiteSpace: 'nowrap' }}>
+                      {new Date(transaction.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                     </td>
-                    <td style={{ padding: '1rem', fontWeight: '500' }}>{transaction.description}</td>
-                    <td style={{ padding: '1rem' }}>
+                    <td style={{ fontWeight: '500' }}>{transaction.description}</td>
+                    <td>
                       <span style={{ 
                         background: `${transaction.category.color}20`, 
                         color: transaction.category.color,
-                        padding: '0.25rem 0.75rem',
+                        padding: '0.2rem 0.65rem',
                         borderRadius: '9999px',
                         fontSize: '0.75rem',
-                        fontWeight: '600'
+                        fontWeight: '600',
+                        display: 'inline-block',
+                        whiteSpace: 'nowrap'
                       }}>
                         {transaction.category.name}
                       </span>
                     </td>
-                    <td style={{ padding: '1rem', fontWeight: '600' }}>
+                    <td style={{ fontWeight: '600', whiteSpace: 'nowrap' }}>
                       {formatCurrency(transaction.amount, user?.currency)}
                     </td>
-                    <td style={{ padding: '1rem', textAlign: 'right' }}>
+                    <td style={{ textAlign: 'right' }}>
                       <button
                         onClick={() => handleDelete(transaction.id)}
-                        style={{ background: 'transparent', border: 'none', color: '#ef4444', cursor: 'pointer', opacity: 0.7 }}
-                        onMouseOver={(e) => e.currentTarget.style.opacity = 1}
-                        onMouseOut={(e) => e.currentTarget.style.opacity = 0.7}
+                        className="btn-icon"
+                        style={{ color: '#ef4444' }}
                       >
-                        <Trash2 size={18} />
+                        <Trash2 size={16} />
                       </button>
                     </td>
                   </motion.tr>
