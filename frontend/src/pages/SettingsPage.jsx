@@ -101,7 +101,7 @@ const SettingsPage = () => {
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
       <Navbar activePage="settings" />
-      <main className="main-content" style={{ flex: 1 }}>
+      <main className="main-content" style={{ flex: 1, width: '100%' }}>
         <div className="page-header">
           <div>
             <h2>Settings & Preferences ⚙️</h2>
@@ -116,21 +116,21 @@ const SettingsPage = () => {
           </div>
         )}
 
-        <div className="settings-grid">
-          {/* Profile & Currency Form */}
-          <div className="glass-card" style={{ padding: '1.5rem' }}>
-            <h3 style={{ marginBottom: '1.25rem', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '1.1rem', fontWeight: '700' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', width: '100%' }}>
+          {/* Section 1: Profile & Currency Form (Full Width) */}
+          <div className="glass-card" style={{ padding: '1.75rem', width: '100%' }}>
+            <h3 style={{ marginBottom: '1.25rem', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '1.15rem', fontWeight: '700' }}>
               <User size={20} style={{ color: 'var(--primary-color)' }} />
               Profile & Currency
             </h3>
 
             <form onSubmit={handleSaveProfile}>
-              <div className="form-group" style={{ marginBottom: '1rem' }}>
+              <div className="form-group" style={{ marginBottom: '1.25rem' }}>
                 <label className="input-label">Account Email</label>
                 <input type="text" className="input-field" value={user?.email || ''} disabled style={{ opacity: 0.7 }} />
               </div>
 
-              <div className="form-group" style={{ marginBottom: '1rem' }}>
+              <div className="form-group" style={{ marginBottom: '1.25rem' }}>
                 <label className="input-label">Full Name</label>
                 <input 
                   type="text" 
@@ -141,7 +141,7 @@ const SettingsPage = () => {
                 />
               </div>
 
-              <div className="form-group" style={{ marginBottom: '1rem' }}>
+              <div className="form-group" style={{ marginBottom: '1.25rem' }}>
                 <label className="input-label">Preferred Currency</label>
                 <select 
                   className="input-field" 
@@ -156,7 +156,7 @@ const SettingsPage = () => {
                 </select>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '1rem', marginBottom: '1rem' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.25rem', marginBottom: '1.25rem' }}>
                 <div className="form-group" style={{ marginBottom: 0 }}>
                   <label className="input-label">Daily Budget Limit</label>
                   <input 
@@ -195,58 +195,55 @@ const SettingsPage = () => {
                 </small>
               </div>
 
-              <button type="submit" className="btn btn-primary" style={{ width: '100%' }} disabled={saving}>
+              <button type="submit" className="btn btn-primary" style={{ width: '100%', padding: '0.75rem' }} disabled={saving}>
                 <Save size={18} />
                 {saving ? 'Saving Preferences...' : 'Save All Settings'}
               </button>
             </form>
           </div>
 
-          {/* Theme & Data Import/Export */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-            {/* Theme Toggle */}
-            <div className="glass-card" style={{ padding: '1.5rem' }}>
-              <h3 style={{ marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '1.1rem', fontWeight: '700' }}>
-                {isDark ? <Moon size={20} style={{ color: '#8b5cf6' }} /> : <Sun size={20} style={{ color: '#f59e0b' }} />}
-                Appearance Theme
-              </h3>
-              <p className="subtitle" style={{ marginBottom: '1.25rem' }}>Switch between dark mode and sleek light mode</p>
+          {/* Section 2: Appearance Theme (Full Width Below Profile) */}
+          <div className="glass-card" style={{ padding: '1.75rem', width: '100%' }}>
+            <h3 style={{ marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '1.15rem', fontWeight: '700' }}>
+              {isDark ? <Moon size={20} style={{ color: '#8b5cf6' }} /> : <Sun size={20} style={{ color: '#f59e0b' }} />}
+              Appearance Theme
+            </h3>
+            <p className="subtitle" style={{ marginBottom: '1.25rem' }}>Switch between dark mode and sleek light mode</p>
 
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.75rem' }}>
-                <span style={{ fontSize: '0.9rem' }}>Current Mode: <strong>{isDark ? 'Dark Mode 🌙' : 'Light Mode ☀️'}</strong></span>
-                <button className="btn btn-secondary" onClick={toggleDark} style={{ padding: '0.55rem 0.9rem', fontSize: '0.85rem' }}>
-                  {isDark ? 'Switch to Light' : 'Switch to Dark'}
-                </button>
-              </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
+              <span style={{ fontSize: '0.95rem' }}>Current Mode: <strong>{isDark ? 'Dark Mode 🌙' : 'Light Mode ☀️'}</strong></span>
+              <button className="btn btn-secondary" onClick={toggleDark} style={{ padding: '0.65rem 1.25rem', fontSize: '0.9rem' }}>
+                {isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+              </button>
             </div>
+          </div>
 
-            {/* CSV Backup & Restore */}
-            <div className="glass-card" style={{ padding: '1.5rem' }}>
-              <h3 style={{ marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '1.1rem', fontWeight: '700' }}>
-                <Download size={20} style={{ color: 'var(--primary-color)' }} />
-                Data Migration & Backup
-              </h3>
-              <p className="subtitle" style={{ marginBottom: '1.25rem' }}>Export your transactions or import external bank CSV files</p>
+          {/* Section 3: Data Migration & Backup (Full Width Below Theme) */}
+          <div className="glass-card" style={{ padding: '1.75rem', width: '100%' }}>
+            <h3 style={{ marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '1.15rem', fontWeight: '700' }}>
+              <Download size={20} style={{ color: 'var(--primary-color)' }} />
+              Data Migration & Backup
+            </h3>
+            <p className="subtitle" style={{ marginBottom: '1.25rem' }}>Export your transactions or import external bank CSV files</p>
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
-                <button className="btn btn-secondary" onClick={handleExportCSV} style={{ justifyContent: 'center', padding: '0.65rem' }}>
-                  <Download size={18} />
-                  Export All Transactions to CSV
-                </button>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1rem' }}>
+              <button className="btn btn-secondary" onClick={handleExportCSV} style={{ justifyContent: 'center', padding: '0.75rem' }}>
+                <Download size={18} />
+                Export All Transactions to CSV
+              </button>
 
-                <div>
-                  <input 
-                    type="file" 
-                    accept=".csv" 
-                    id="csv-settings-input" 
-                    style={{ display: 'none' }} 
-                    onChange={handleImportCSV} 
-                  />
-                  <label htmlFor="csv-settings-input" className="btn btn-outline" style={{ display: 'flex', justifyContent: 'center', cursor: 'pointer', padding: '0.65rem' }}>
-                    <Upload size={18} />
-                    {csvLoading ? 'Importing CSV...' : 'Import Transactions from CSV'}
-                  </label>
-                </div>
+              <div>
+                <input 
+                  type="file" 
+                  accept=".csv" 
+                  id="csv-settings-input" 
+                  style={{ display: 'none' }} 
+                  onChange={handleImportCSV} 
+                />
+                <label htmlFor="csv-settings-input" className="btn btn-outline" style={{ display: 'flex', justifyContent: 'center', cursor: 'pointer', padding: '0.75rem' }}>
+                  <Upload size={18} />
+                  {csvLoading ? 'Importing CSV...' : 'Import Transactions from CSV'}
+                </label>
               </div>
             </div>
           </div>
