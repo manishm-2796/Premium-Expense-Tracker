@@ -18,6 +18,14 @@ export const AuthProvider = ({ children }) => {
     setLoading(false);
   }, []);
 
+  const extractErrorMessage = (err, fallback) => {
+    const detail = err.response?.data?.detail;
+    if (!detail) return fallback;
+    if (typeof detail === 'string') return detail;
+    if (Array.isArray(detail)) return detail.map(d => d.msg || JSON.stringify(d)).join(', ');
+    return fallback;
+  };
+
   const signup = async (email, password) => {
     try {
       setError(null);
@@ -30,7 +38,7 @@ export const AuthProvider = ({ children }) => {
       
       return userData;
     } catch (err) {
-      const message = err.response?.data?.detail || 'Signup failed';
+      const message = extractErrorMessage(err, 'Signup failed');
       setError(message);
       throw new Error(message);
     }
@@ -48,7 +56,7 @@ export const AuthProvider = ({ children }) => {
       
       return userData;
     } catch (err) {
-      const message = err.response?.data?.detail || 'Login failed';
+      const message = extractErrorMessage(err, 'Login failed');
       setError(message);
       throw new Error(message);
     }
@@ -64,7 +72,7 @@ export const AuthProvider = ({ children }) => {
       setUserState(updatedUser);
       return updatedUser;
     } catch (err) {
-      const message = err.response?.data?.detail || 'Update failed';
+      const message = extractErrorMessage(err, 'Update failed');
       setError(message);
       throw new Error(message);
     }
@@ -82,7 +90,7 @@ export const AuthProvider = ({ children }) => {
       
       return userData;
     } catch (err) {
-      const message = err.response?.data?.detail || 'Social sign-in failed';
+      const message = extractErrorMessage(err, 'Social sign-in failed');
       setError(message);
       throw new Error(message);
     }
