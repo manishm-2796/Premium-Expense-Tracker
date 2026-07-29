@@ -1,22 +1,11 @@
-const CACHE_NAME = 'expense-tracker-v1';
-const APP_SHELL = [
-  '/',
-  '/index.html',
-  '/src/main.jsx',
-  '/favicon.svg',
-  '/manifest.json'
-];
+const CACHE_NAME = 'expense-tracker-v2';
 
-// Install Event - Pre-cache App Shell
+// Install Event - Skip waiting immediately
 self.addEventListener('install', (event) => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(APP_SHELL);
-    })
-  );
+  self.skipWaiting();
 });
 
-// Activate Event - Clean up old caches
+// Activate Event - Claim clients and clean old caches
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((cacheNames) => {
@@ -31,61 +20,40 @@ self.addEventListener('activate', (event) => {
   );
 });
 
-// Fetch Event Handler
+// Fetch Event - Network-first for everything, cache as fallback
 self.addEventListener('fetch', (event) => {
-  const url = new URL(event.request.url);
+  // Only handle GET requests
+  if (event.request.method !== 'GET') return;
 
-  // Network-first strategy for API requests
-  const isApiRequest = url.pathname.startsWith('/api/') || url.hostname.includes('expense-tracker-backend-kjds.onrender.com');
-
-  if (isApiRequest) {
-    event.respondWith(
-      fetch(event.request)
-        .then((response) => {
-          if (response && response.status === 200 && event.request.method === 'GET') {
-            const responseToCache = response.clone();
-            caches.open(CACHE_NAME).then((cache) => {
-              cache.put(event.request, responseToCache);
-            });
-          }
-          return response;
-        })
-        .catch(() => {
-          return caches.match(event.request);
-        })
-    );
-  } else {
-    // Cache-first strategy for static assets
-    event.respondWith(
-      caches.match(event.request).then((cachedResponse) => {
-        if (cachedResponse) {
-          return cachedResponse;
-        }
-        return fetch(event.request).then((response) => {
-          if (!response || response.status !== 200 || response.type !== 'basic') {
-            return response;
-          }
+  event.respondWith(
+    fetch(event.request)
+      .then((response) => {
+        // Cache successful responses for offline fallback
+        if (response && response.status === 200) {
           const responseToCache = response.clone();
           caches.open(CACHE_NAME).then((cache) => {
             cache.put(event.request, responseToCache);
           });
-          return response;
+        }
+        return response;
+      })
+      .catch(() => {
+        // Offline: serve from cache
+        return caches.match(event.request).then((cached) => {
+          return cached || new Response('Offline', { status: 503 });
         });
       })
-    );
-  }
+  );
 });
 
-// Background Sync Event Handler
+// Background Sync
 self.addEventListener('sync', (event) => {
-  if (event.tag === 'sync-tag') {
-    event.waitUntil(
-      Promise.resolve()
-    );
+  if (event.tag === 'sync-expenses') {
+    event.waitUntil(Promise.resolve());
   }
 });
 
-// Message Event Handler for SKIP_WAITING
+// Accept updates immediately
 self.addEventListener('message', (event) => {
   if (event.data && event.data.type === 'SKIP_WAITING') {
     self.skipWaiting();
