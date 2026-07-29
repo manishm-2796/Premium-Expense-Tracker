@@ -22,7 +22,7 @@ class ReceiptOCRService:
     Includes fallback to rule-based parsing if API unavailable.
     """
     
-    def __init__(self, api_key: str):
+    def __init__(self, api_key: str = ""):
         self.api_key = api_key
         if GEMINI_AVAILABLE and api_key:
             try:
@@ -173,15 +173,15 @@ class ReceiptOCRService:
         
         category_keywords = {
             "Food": ["starbucks", "coffee", "cafe", "dunkin", "restaurant", "pizza", "burger", 
-                    "lunch", "dinner", "food", "grocery", "supermarket", "walmart", "target"],
-            "Transportation": ["uber", "lyft", "taxi", "gas", "fuel", "shell", "chevron", "exxon", "metro", "train"],
+                    "lunch", "dinner", "food", "grocery", "supermarket", "walmart", "target", "mcdonalds"],
+            "Transportation": ["uber", "lyft", "ola", "taxi", "gas", "fuel", "shell", "chevron", "exxon", "metro", "train"],
             "Entertainment": ["netflix", "spotify", "hulu", "cinema", "movie", "gaming", "steam"],
             "Shopping": ["amazon", "ebay", "target", "bestbuy", "h&m", "zara", "nike", "clothing"],
             "Medical": ["pharmacy", "cvs", "walgreens", "hospital", "doctor", "clinic"],
             "Utilities": ["electric", "water", "internet", "phone", "verizon", "att"],
             "Travel": ["hotel", "airbnb", "booking", "expedia", "airlines"]
         }
-        
+
         for category, keywords in category_keywords.items():
             for keyword in keywords:
                 if keyword in merchant_lower:
@@ -200,3 +200,7 @@ class ReceiptOCRService:
             return True
         except ValueError:
             return False
+
+
+# Alias for compatibility with test imports
+ReceiptProcessingService = ReceiptOCRService

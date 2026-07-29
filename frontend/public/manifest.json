@@ -1,0 +1,14 @@
+{
+  "name": "Premium Expense Tracker",
+  "short_name": "ExpenseTracker",
+  "description": "Track your expenses with AI-powered insights",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#111827",
+  "theme_color": "#6366f1",
+  "orientation": "portrait-primary",
+  "icons": [
+    { "src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ],
+  "categories": ["finance", "productivity"]
+}

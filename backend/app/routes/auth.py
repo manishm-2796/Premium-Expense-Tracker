@@ -51,7 +51,7 @@ def signup(user_data: UserCreate, db: Session = Depends(get_db)):
         print(f"Signup exception: {e}")
         raise HTTPException(status_code=400, detail=f"Signup failed: {str(e)}")
 
-@router.post("/login", response_model=TokenResponse)
+@router.post("/login")
 def login(user_data: UserLogin, db: Session = Depends(get_db)):
     try:
         # Find user
@@ -59,7 +59,15 @@ def login(user_data: UserLogin, db: Session = Depends(get_db)):
         if not user or not verify_password(user_data.password, user.password_hash):
             raise HTTPException(status_code=401, detail="Invalid credentials")
         
-        # Generate token
+        # Check if 2FA is enabled
+        if getattr(user, 'two_factor_enabled', False) and user.two_factor_enabled:
+            return {
+                "requires_2fa": True,
+                "email": user.email,
+                "message": "Two-factor authentication required"
+            }
+        
+        # Generate token (no 2FA)
         access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
         access_token = create_access_token(
             data={"sub": str(user.id)}, 

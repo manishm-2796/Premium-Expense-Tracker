@@ -48,6 +48,12 @@ export const AuthProvider = ({ children }) => {
     try {
       setError(null);
       const response = await authService.login(email, password);
+      
+      // Check if 2FA is required
+      if (response.data.requires_2fa) {
+        throw new Error('requires_2fa: Two-factor authentication required');
+      }
+      
       const { access_token, user: userData } = response.data;
       
       setToken(access_token);
@@ -56,6 +62,10 @@ export const AuthProvider = ({ children }) => {
       
       return userData;
     } catch (err) {
+      // Re-throw 2FA requirement without overwriting the message
+      if (err.message && err.message.includes('requires_2fa')) {
+        throw err;
+      }
       const message = extractErrorMessage(err, 'Login failed');
       setError(message);
       throw new Error(message);

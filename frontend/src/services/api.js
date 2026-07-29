@@ -69,7 +69,8 @@ export const receiptService = {
 export const twoFactorService = {
   setup: () => api.post('/auth/2fa/setup'),
   confirm: (code) => api.post('/auth/2fa/confirm', { code }),
-  disable: () => api.post('/auth/2fa/disable', {})
+  disable: () => api.post('/auth/2fa/disable', {}),
+  verifyToken: (code, email) => api.post('/auth/2fa/verify-token', { code, email })
 };
 
 export default api;
